@@ -41,13 +41,13 @@ export function App() {
     const renderer = new VF.Renderer(staffRef.current, VF.Renderer.Backends.SVG);
 
     // Configure the rendering context
-    renderer.resize(360, 280);
+    renderer.resize(360, 250);
     const context = renderer.getContext();
     context.setFont("Arial", 12);
-    context.scale(2.8, 3);
+    context.scale(2.5, 2.5);
 
     // Create a stave
-    const stave = new VF.Stave(14, -10, 100);
+    const stave = new VF.Stave(22, -10, 100);
     stave.addClef("treble");
     stave.setContext(context).draw();
 
@@ -129,7 +129,7 @@ export function App() {
         "from-pink-400 to-teal-300": feedback === "",
       })}
     >
-      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl py-16 px-8 mx-auto">
+      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-8 mx-auto">
         <div className="flex justify-center">
           <div ref={staffRef} className="staff-container"></div>
         </div>
@@ -147,7 +147,7 @@ export function App() {
         </div>
 
         <div className="max-w-md mx-auto">
-          <p className="text-xl md:text-2xl font-semibold text-black mt-4 md:mt-6 mb-4 md:mb-6 text-center">
+          <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4 mb-4 md:mb-6 text-center">
             ¿Qué nota es esta?
           </p>
           <div className="grid grid-cols-2 gap-4">
