@@ -102,22 +102,22 @@ export function Notes() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
-      <h1 className="text-4xl font-bold text-gray-900 mb-8">Quiz de Lectura Musical</h1>
-
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-6">
-        <div className="scale-50 relative transform transform-scale-50">
-          <div ref={staffRef} className="staff-container"></div>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-teal-100 to-teal-100">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-8 mx-auto">
+        <div className="flex justify-center mb-8">
+          <div ref={staffRef} className="staff-container transform scale-75 md:scale-100"></div>
         </div>
 
-        <div className="mt-8">
-          <p className="block text-lg font-medium text-gray-700 mb-4">¿Qué nota es esta?</p>
-          <div className="grid grid-cols-7 gap-2">
+        <div className="mt-8 max-w-2xl mx-auto">
+          <p className="text-2xl font-medium text-teal-800 mb-6 text-center">¿Qué nota es esta?</p>
+          <div className="grid grid-cols-4 md:grid-cols-7 gap-4">
             {NOTES.slice(0, 7).map((note) => (
               <button
                 key={note.name}
                 onClick={() => handleNoteClick(note)}
-                className="bg-music-secondary hover:bg-blue-600 text-red-500 font-bold py-2 px-4 rounded-md transition duration-300"
+                className="cursor-pointer bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 
+                text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg 
+                transform hover:scale-105 transition-all duration-200 text-lg"
               >
                 {note.name}
               </button>
@@ -127,16 +127,20 @@ export function Notes() {
 
         {feedback && (
           <div
-            className={`mt-4 p-3 rounded-md ${
-              feedback.includes("Correcto") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+            className={`mt-8 p-4 rounded-xl text-center text-lg font-semibold ${
+              feedback.includes("Correcto")
+                ? "bg-gradient-to-r from-green-100 to-green-200 text-green-800"
+                : "bg-gradient-to-r from-red-100 to-red-200 text-red-800"
             }`}
           >
             {feedback}
           </div>
         )}
 
-        <div className="mt-6 text-center">
-          <p className="text-xl font-semibold">Puntuación: {score}</p>
+        <div className="mt-8 text-center">
+          <p className="text-3xl font-bold text-teal-800">
+            Puntuación: <span className="text-teal-600">{score}</span>
+          </p>
         </div>
       </div>
     </div>
