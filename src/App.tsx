@@ -123,7 +123,7 @@ export function App() {
   return (
     <div
       className={clsx({
-        "h-screen min-w-[380px] w-full flex flex-col items-center justify-center p-8 bg-gradient-to-b": true,
+        "h-full min-w-[380px] w-full flex flex-col items-center justify-center p-8 bg-gradient-to-b": true,
         "from-green-400 to-green-300": feedback.includes("Correcto"),
         "from-red-600 to-red-400": feedback.includes("Incorrecto"),
         "from-pink-400 to-teal-300": feedback === "",
