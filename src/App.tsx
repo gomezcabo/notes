@@ -129,7 +129,7 @@ export function App() {
         "from-pink-400 to-teal-300": feedback === "",
       })}
     >
-      <div className="w-full md:h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl py-16 px-8 mx-auto">
+      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl py-16 px-8 mx-auto">
         <div className="flex justify-center">
           <div ref={staffRef} className="staff-container"></div>
         </div>
@@ -147,15 +147,17 @@ export function App() {
         </div>
 
         <div className="max-w-md mx-auto">
-          <p className="text-2xl font-semibold text-black mt-6 mb-6 text-center">¿Qué nota es esta?</p>
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+          <p className="text-xl md:text-2xl font-semibold text-black mt-4 md:mt-6 mb-4 md:mb-6 text-center">
+            ¿Qué nota es esta?
+          </p>
+          <div className="grid grid-cols-2 gap-4">
             {candidateNotes.map((note) => (
               <button
                 disabled={feedback !== ""}
                 key={note.name}
                 onClick={() => handleNoteClick(note)}
                 className={clsx(
-                  "cursor-pointer bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-4 px-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-200 text-2xl",
+                  "cursor-pointer bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 md:py-4 md:px-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-200 text-lg md:text-xl",
                   feedback !== "" && "disabled:opacity-50 pointer-events-none"
                 )}
               >
