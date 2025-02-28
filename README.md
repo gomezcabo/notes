@@ -1,54 +1,48 @@
-# React + TypeScript + Vite
+# Aprende Teoría Musical
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Una aplicación interactiva para aprender teoría musical, desarrollada con React, TypeScript y Vite.
 
-Currently, two official plugins are available:
+## Descripción
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Esta aplicación está diseñada para ayudar a estudiantes de música a practicar y mejorar sus habilidades en teoría musical a través de ejercicios interactivos. Actualmente incluye los siguientes módulos:
 
-## Expanding the ESLint configuration
+- **Identificación de Notas**: Aprende a reconocer notas en el pentagrama
+- **Identificación de Acordes [Pendiente de implementar]**: Practica el reconocimiento de acordes musicales
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tecnologías Utilizadas
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- React 19
+- TypeScript
+- Vite
+- TailwindCSS
+- VexFlow (para la notación musical)
+- React Router
+
+## Características
+
+- Interfaz de usuario intuitiva y atractiva
+- Retroalimentación inmediata sobre respuestas
+- Generación aleatoria de notas para practicar
+- Diseño responsivo para diferentes dispositivos
+
+## Instalación
+
+```bash
+# Clonar el repositorio
+git clone [url-del-repositorio]
+
+# Navegar al directorio del proyecto
+cd notes
+
+# Instalar dependencias
+npm install
+
+# Iniciar el servidor de desarrollo
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Uso
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Inicia la aplicación con `npm run dev`
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+[MIT](https://choosealicense.com/licenses/mit/)
