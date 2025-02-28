@@ -41,13 +41,13 @@ export function App() {
     const renderer = new VF.Renderer(staffRef.current, VF.Renderer.Backends.SVG);
 
     // Configure the rendering context
-    renderer.resize(380, 280);
+    renderer.resize(360, 280);
     const context = renderer.getContext();
     context.setFont("Arial", 12);
-    context.scale(3, 3);
+    context.scale(2.8, 3);
 
     // Create a stave
-    const stave = new VF.Stave(13, -10, 100);
+    const stave = new VF.Stave(14, -10, 100);
     stave.addClef("treble");
     stave.setContext(context).draw();
 
@@ -123,7 +123,7 @@ export function App() {
   return (
     <div
       className={clsx({
-        "h-screen min-w-[480px] w-full flex flex-col items-center justify-center p-8 bg-gradient-to-b": true,
+        "h-screen min-w-[380px] w-full flex flex-col items-center justify-center p-8 bg-gradient-to-b": true,
         "from-green-400 to-green-300": feedback.includes("Correcto"),
         "from-red-600 to-red-400": feedback.includes("Incorrecto"),
         "from-pink-400 to-teal-300": feedback === "",
