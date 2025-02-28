@@ -9,7 +9,7 @@ type Note = {
 };
 
 const NOTES: Note[] = [
-  // { name: "Si", key: "b/3" },
+  { name: "Si", key: "b/3" },
   { name: "Do", key: "c/4" },
   { name: "Re", key: "d/4" },
   { name: "Mi", key: "e/4" },
@@ -99,13 +99,12 @@ export function App() {
   };
 
   const handleNoteClick = (selectedNote: Note) => {
-    if (selectedNote.name === currentNote.name) {
-      setFeedback("¡Correcto! Es un " + currentNote.name.toUpperCase());
-      setTimeout(generateNewNote, 1500);
-    } else {
-      setFeedback(`¡Incorrecto! Es un ${currentNote.name.toUpperCase()}`);
-      setTimeout(generateNewNote, 2500);
-    }
+    setFeedback(
+      selectedNote.name === currentNote.name
+        ? "¡Correcto! Es un " + currentNote.name.toUpperCase()
+        : "¡Incorrecto! Es un " + currentNote.name.toUpperCase()
+    );
+    setTimeout(generateNewNote, 1500);
   };
 
   const candidateNotes = useMemo(() => {
@@ -129,7 +128,7 @@ export function App() {
         "from-pink-400 to-teal-300": feedback === "",
       })}
     >
-      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-8 mx-auto">
+      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-16 mx-auto">
         <div className="flex justify-center">
           <div ref={staffRef} className="staff-container"></div>
         </div>
