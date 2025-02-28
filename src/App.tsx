@@ -129,7 +129,7 @@ export function App() {
         "from-pink-400 to-teal-300": feedback === "",
       })}
     >
-      <div className="w-full md:h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl md:py-16 py-32 p-8 mx-auto">
+      <div className="w-full md:h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl py-16 px-8 mx-auto">
         <div className="flex justify-center">
           <div ref={staffRef} className="staff-container"></div>
         </div>
