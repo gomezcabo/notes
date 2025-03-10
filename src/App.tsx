@@ -2,13 +2,17 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Vex } from "vexflow";
 
 import { clsx } from "clsx";
+import { GearsIcon } from "./components/gears-icon";
 
 type Note = {
   name: string;
   key: string;
 };
 
-const NOTES: Note[] = [
+type ClefType = "treble" | "bass";
+
+const TREBLE_NOTES: Note[] = [
+  { name: "La", key: "a/3" },
   { name: "Si", key: "b/3" },
   { name: "Do", key: "c/4" },
   { name: "Re", key: "d/4" },
@@ -27,10 +31,46 @@ const NOTES: Note[] = [
   { name: "Do", key: "c/6" },
 ];
 
+const BASS_NOTES: Note[] = [
+  { name: "Do", key: "c/2" },
+  { name: "Re", key: "d/2" },
+  { name: "Mi", key: "e/2" },
+  { name: "Fa", key: "f/2" },
+  { name: "Sol", key: "g/2" },
+  { name: "La", key: "a/2" },
+  { name: "Si", key: "b/2" },
+  { name: "Do", key: "c/3" },
+  { name: "Re", key: "d/3" },
+  { name: "Mi", key: "e/3" },
+  { name: "Fa", key: "f/3" },
+  { name: "Sol", key: "g/3" },
+  { name: "La", key: "a/3" },
+  { name: "Si", key: "b/3" },
+  { name: "Do", key: "c/4" },
+  { name: "Re", key: "d/4" },
+];
+
 export function App() {
-  const [currentNote, setCurrentNote] = useState<Note>(NOTES[0]);
+  const [currentClef, setCurrentClef] = useState<ClefType>("treble");
+  const [currentNote, setCurrentNote] = useState<Note>(TREBLE_NOTES[0]);
   const [feedback, setFeedback] = useState("");
+  const [showClefMenu, setShowClefMenu] = useState(false);
   const staffRef = useRef<HTMLDivElement>(null!);
+  const clefMenuRef = useRef<HTMLDivElement>(null!);
+
+  // Cerrar el menú de claves al hacer clic fuera de él
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (clefMenuRef.current && !clefMenuRef.current.contains(event.target as Node)) {
+        setShowClefMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const renderStaff = useCallback(() => {
     // Clear previous rendering
@@ -48,12 +88,12 @@ export function App() {
 
     // Create a stave
     const stave = new VF.Stave(22, -10, 100);
-    stave.addClef("treble");
+    stave.addClef(currentClef);
     stave.setContext(context).draw();
 
     // Create a note
     const note = new VF.StaveNote({
-      clef: "treble",
+      clef: currentClef,
       keys: [currentNote.key],
       duration: "w",
     });
@@ -75,11 +115,11 @@ export function App() {
     // Format and draw the voice
     new VF.Formatter().joinVoices([voice]).format([voice]);
     voice.draw(context, stave);
-  }, [currentNote]);
+  }, [currentNote, currentClef]);
 
   useEffect(() => {
     generateNewNote();
-  }, []);
+  }, [currentClef]);
 
   useEffect(() => {
     if (currentNote && staffRef.current) {
@@ -88,27 +128,50 @@ export function App() {
   }, [currentNote, staffRef, renderStaff]);
 
   const generateNewNote = () => {
-    let randomIndex = Math.floor(Math.random() * NOTES.length);
-    let newNote = NOTES[randomIndex];
-    while (newNote === currentNote) {
-      randomIndex = Math.floor(Math.random() * NOTES.length);
-      newNote = NOTES[randomIndex];
+    const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
+    let randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
+    let newNote = notesForCurrentClef[randomIndex];
+
+    // Asegurarse de que la nueva nota sea diferente a la actual
+    if (currentNote && notesForCurrentClef.length > 1) {
+      while (newNote.key === currentNote.key) {
+        randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
+        newNote = notesForCurrentClef[randomIndex];
+      }
     }
+
     setCurrentNote(newNote);
     setFeedback("");
   };
 
   const handleNoteClick = (selectedNote: Note) => {
+    const isCorrect = selectedNote.name === currentNote.name;
+
     setFeedback(
-      selectedNote.name === currentNote.name
+      isCorrect
         ? "¡Correcto! Es un " + currentNote.name.toUpperCase()
         : "¡Incorrecto! Es un " + currentNote.name.toUpperCase()
     );
+
     setTimeout(generateNewNote, 1500);
   };
 
+  const handleClefChange = (clef: ClefType) => {
+    if (clef !== currentClef) {
+      setCurrentClef(clef);
+      setFeedback("");
+      setShowClefMenu(false);
+    }
+  };
+
+  const toggleClefMenu = () => {
+    setShowClefMenu(!showClefMenu);
+  };
+
   const candidateNotes = useMemo(() => {
-    const newNotes = [...NOTES]
+    const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
+
+    const newNotes = [...notesForCurrentClef]
       .slice(0, 7)
       .sort(() => Math.random() - 0.5)
       .filter((note) => note.name !== currentNote.name)
@@ -117,26 +180,62 @@ export function App() {
       .sort(() => Math.random() - 0.5);
 
     return newNotes;
-  }, [currentNote]);
+  }, [currentNote, currentClef]);
 
   return (
     <div
       className={clsx({
-        "h-[100dvh] min-w-[380px] w-full flex flex-col items-center justify-center p-8 bg-gradient-to-b": true,
+        "h-[100dvh] w-full flex flex-col items-center justify-center p-4 sm:p-8 bg-gradient-to-b": true,
         "from-green-400 to-green-300": feedback.includes("Correcto"),
         "from-red-600 to-red-400": feedback.includes("Incorrecto"),
         "from-pink-400 to-teal-300": feedback === "",
       })}
     >
-      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-16 mx-auto">
-        <div className="flex justify-center">
+      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-8 sm:p-16 mx-auto">
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            onClick={toggleClefMenu}
+            className="w-10 h-10 flex items-center cursor-pointer justify-center bg-gray-100 hover:bg-gray-200 rounded-full shadow-md transition-colors"
+            aria-label="Configuración de clave"
+          >
+            <GearsIcon />
+          </button>
+
+          {showClefMenu && (
+            <div ref={clefMenuRef} className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-20">
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                Seleccionar clave
+              </div>
+              <button
+                onClick={() => handleClefChange("treble")}
+                className={`w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer ${
+                  currentClef === "treble" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <span className="mr-2">{currentClef === "treble" ? "✓" : ""}</span>
+                Clave de Sol
+              </button>
+              <button
+                onClick={() => handleClefChange("bass")}
+                className={`w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer ${
+                  currentClef === "bass" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <span className="mr-2">{currentClef === "bass" ? "✓" : ""}</span>
+                Clave de Fa
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-center mt-8 sm:mt-0">
           <div ref={staffRef} className="staff-container"></div>
         </div>
 
         <div className="absolute top-0 left-0 w-full">
           {feedback && (
             <div
-              className={`p-6 rounded-tl-xl rounded-tr-xl text-center text-2xl font-semibold ${
+              className={`p-4 sm:p-6 rounded-tl-xl rounded-tr-xl text-center text-xl sm:text-2xl font-semibold ${
                 feedback.includes("Correcto") ? "text-green-800" : "text-red-800"
               }`}
             >
