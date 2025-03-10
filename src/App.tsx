@@ -4,6 +4,13 @@ import { Vex } from "vexflow";
 import { clsx } from "clsx";
 import { GearsIcon } from "./components/gears-icon";
 
+// Constant for number of notes to show
+const NOTES_TO_SHOW = 1;
+
+const WIDTHS = [110, 160, 210, 230];
+const SCALES = [2.5, 2.2, 1.8, 1.8];
+const PADDING_LEFT = [32, 64, 127, 139];
+
 type Note = {
   name: string;
   key: string;
@@ -53,7 +60,8 @@ const BASS_NOTES: Note[] = [
 
 export function App() {
   const [currentClef, setCurrentClef] = useState<ClefType>("treble");
-  const [currentNote, setCurrentNote] = useState<Note>(TREBLE_NOTES[0]);
+  const [currentNotes, setCurrentNotes] = useState<Note[]>([]);
+  const [userAnswers, setUserAnswers] = useState<Note[]>([]);
   const [feedback, setFeedback] = useState("");
   const [showClefMenu, setShowClefMenu] = useState(false);
   const staffRef = useRef<HTMLDivElement>(null!);
@@ -81,79 +89,85 @@ export function App() {
     const renderer = new VF.Renderer(staffRef.current, VF.Renderer.Backends.SVG);
 
     // Configure the rendering context
-    renderer.resize(360, 250);
+    renderer.resize(WIDTHS[NOTES_TO_SHOW - 1] * 4, 250);
     const context = renderer.getContext();
     context.setFont("Arial", 12);
-    context.scale(2.5, 2.5);
+    context.scale(SCALES[NOTES_TO_SHOW - 1], SCALES[NOTES_TO_SHOW - 1]);
 
     // Create a stave
-    const stave = new VF.Stave(22, -10, 100);
+    const stave = new VF.Stave(PADDING_LEFT[NOTES_TO_SHOW - 1], -10, WIDTHS[NOTES_TO_SHOW - 1]);
     stave.addClef(currentClef);
     stave.setContext(context).draw();
 
-    // Create a note
-    const note = new VF.StaveNote({
-      clef: currentClef,
-      keys: [currentNote.key],
-      duration: "w",
+    // Create notes
+    const notes = currentNotes.map((note) => {
+      const staveNote = new VF.StaveNote({
+        clef: currentClef,
+        keys: [note.key],
+        duration: "q",
+      });
+
+      // Set stem direction based on note position
+      const lineNumber = staveNote.getKeyLine(0);
+      staveNote.setStemDirection(lineNumber >= 3 ? -1 : 1);
+
+      return staveNote;
     });
 
-    // Get the line number for the note (0 is the bottom line, 6 is the top line)
-    const lineNumber = note.getKeyLine(0);
-
-    // Middle line is 2 (counting from 0), so we use this as our reference
-    if (lineNumber >= 3) {
-      note.setStemDirection(-1); // stem down for high notes
-    } else {
-      note.setStemDirection(1); // stem up for low notes
-    }
-
-    // Create a voice and add the note
-    const voice = new VF.Voice({ num_beats: 1, beat_value: 1 });
-    voice.addTickables([note]);
+    // Create a voice and add the notes
+    const voice = new VF.Voice({ num_beats: NOTES_TO_SHOW, beat_value: 4 });
+    voice.addTickables(notes);
 
     // Format and draw the voice
-    new VF.Formatter().joinVoices([voice]).format([voice]);
+    new VF.Formatter().joinVoices([voice]).format([voice], 180);
     voice.draw(context, stave);
-  }, [currentNote, currentClef]);
+  }, [currentNotes, currentClef]);
 
-  useEffect(() => {
-    generateNewNote();
-  }, [currentClef]);
-
-  useEffect(() => {
-    if (currentNote && staffRef.current) {
-      renderStaff();
-    }
-  }, [currentNote, staffRef, renderStaff]);
-
-  const generateNewNote = () => {
+  const generateNewNotes = useCallback(() => {
     const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
-    let randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
-    let newNote = notesForCurrentClef[randomIndex];
+    const newNotes: Note[] = [];
 
-    // Asegurarse de que la nueva nota sea diferente a la actual
-    if (currentNote && notesForCurrentClef.length > 1) {
-      while (newNote.key === currentNote.key) {
-        randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
-        newNote = notesForCurrentClef[randomIndex];
+    while (newNotes.length < NOTES_TO_SHOW) {
+      const randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
+      const newNote = notesForCurrentClef[randomIndex];
+
+      // Avoid repeating the same note consecutively
+      if (newNotes.length === 0 || newNotes[newNotes.length - 1].key !== newNote.key) {
+        newNotes.push(newNote);
       }
     }
 
-    setCurrentNote(newNote);
+    setCurrentNotes(newNotes);
+    setUserAnswers([]);
     setFeedback("");
-  };
+  }, [currentClef]);
+
+  useEffect(() => {
+    generateNewNotes();
+  }, [currentClef, generateNewNotes]);
+
+  useEffect(() => {
+    if (currentNotes.length > 0 && staffRef.current) {
+      renderStaff();
+    }
+  }, [currentNotes, staffRef, renderStaff]);
 
   const handleNoteClick = (selectedNote: Note) => {
-    const isCorrect = selectedNote.name === currentNote.name;
+    if (userAnswers.length >= NOTES_TO_SHOW) return;
 
-    setFeedback(
-      isCorrect
-        ? "¡Correcto! Es un " + currentNote.name.toUpperCase()
-        : "¡Incorrecto! Es un " + currentNote.name.toUpperCase()
-    );
+    const newUserAnswers = [...userAnswers, selectedNote];
+    setUserAnswers(newUserAnswers);
 
-    setTimeout(generateNewNote, 1500);
+    if (newUserAnswers.length === NOTES_TO_SHOW) {
+      const isCorrect = newUserAnswers.every((note, index) => note.name === currentNotes[index].name);
+
+      const feedbackText = isCorrect
+        ? "¡Correcto! La secuencia es: " + currentNotes.map((n) => n.name.toUpperCase()).join(" - ")
+        : "¡Incorrecto! La secuencia correcta es: " + currentNotes.map((n) => n.name.toUpperCase()).join(" - ");
+
+      setFeedback(feedbackText);
+      setTimeout(generateNewNotes, 2000);
+    }
   };
 
   const handleClefChange = (clef: ClefType) => {
@@ -170,17 +184,11 @@ export function App() {
 
   const candidateNotes = useMemo(() => {
     const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
-
-    const newNotes = [...notesForCurrentClef]
-      .slice(0, 7)
+    return [...new Set(notesForCurrentClef.map((note) => note.name))]
+      .map((name) => notesForCurrentClef.find((note) => note.name === name)!)
       .sort(() => Math.random() - 0.5)
-      .filter((note) => note.name !== currentNote.name)
-      .slice(0, 3)
-      .concat(currentNote)
-      .sort(() => Math.random() - 0.5);
-
-    return newNotes;
-  }, [currentNote, currentClef]);
+      .slice(0, 7);
+  }, [currentClef]);
 
   return (
     <div
@@ -251,18 +259,25 @@ export function App() {
         </div>
 
         <div className="max-w-md mx-auto">
-          <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4 mb-4 md:mb-6 text-center">
-            ¿Qué nota es esta?
-          </p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="text-center mb-4">
+            <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4 mb-2">
+              ¿Qué notas son estas? ({userAnswers.length}/{NOTES_TO_SHOW})
+            </p>
+            {userAnswers.length > 0 && (
+              <p className="text-lg text-gray-600 mb-4">
+                Tu secuencia: {userAnswers.map((n) => n.name.toUpperCase()).join(" - ")}
+              </p>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-3">
             {candidateNotes.map((note) => (
               <button
-                disabled={feedback !== ""}
+                disabled={feedback !== "" || userAnswers.length >= NOTES_TO_SHOW}
                 key={note.name}
                 onClick={() => handleNoteClick(note)}
                 className={clsx(
-                  "cursor-pointer bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 md:py-4 md:px-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-200 text-lg md:text-xl",
-                  feedback !== "" && "disabled:opacity-50 pointer-events-none"
+                  "cursor-pointer bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-3 md:py-3 md:px-4 rounded-xl shadow-md transform hover:scale-105 transition-all duration-200 text-lg",
+                  (feedback !== "" || userAnswers.length >= NOTES_TO_SHOW) && "disabled:opacity-50 pointer-events-none"
                 )}
               >
                 {note.name.toUpperCase()}
