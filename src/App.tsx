@@ -48,6 +48,7 @@ const BASS_NOTES: Note[] = [
   { name: "Si", key: "b/3" },
   { name: "Do", key: "c/4" },
   { name: "Re", key: "d/4" },
+  { name: "Mi", key: "e/4" },
 ];
 
 export function App() {
@@ -58,7 +59,6 @@ export function App() {
   const staffRef = useRef<HTMLDivElement>(null!);
   const clefMenuRef = useRef<HTMLDivElement>(null!);
 
-  // Cerrar el menú de claves al hacer clic fuera de él
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (clefMenuRef.current && !clefMenuRef.current.contains(event.target as Node)) {
@@ -202,26 +202,31 @@ export function App() {
           </button>
 
           {showClefMenu && (
-            <div ref={clefMenuRef} className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-20">
+            <div
+              ref={clefMenuRef}
+              className="absolute right-[-4px] top-[-4px] w-48 bg-white rounded-lg shadow-lg py-2 z-20"
+            >
               <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
                 Seleccionar clave
               </div>
               <button
                 onClick={() => handleClefChange("treble")}
-                className={`w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer ${
+                className={clsx(
+                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
                   currentClef === "treble" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
-                }`}
+                )}
               >
-                <span className="mr-2">{currentClef === "treble" ? "✓" : ""}</span>
+                <span className="mr-2 w-4">{currentClef === "treble" ? "✓" : ""}</span>
                 Clave de Sol
               </button>
               <button
                 onClick={() => handleClefChange("bass")}
-                className={`w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer ${
+                className={clsx(
+                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
                   currentClef === "bass" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
-                }`}
+                )}
               >
-                <span className="mr-2">{currentClef === "bass" ? "✓" : ""}</span>
+                <span className="mr-2 w-4">{currentClef === "bass" ? "✓" : ""}</span>
                 Clave de Fa
               </button>
             </div>
@@ -235,9 +240,10 @@ export function App() {
         <div className="absolute top-0 left-0 w-full">
           {feedback && (
             <div
-              className={`p-4 sm:p-6 rounded-tl-xl rounded-tr-xl text-center text-xl sm:text-2xl font-semibold ${
-                feedback.includes("Correcto") ? "text-green-800" : "text-red-800"
-              }`}
+              className={clsx(
+                "p-4 sm:p-6 rounded-tl-xl rounded-tr-xl text-center text-xl sm:text-2xl font-semibold",
+                feedback.includes("Correcto") ? "text-green-600" : "text-red-500"
+              )}
             >
               {feedback}
             </div>
