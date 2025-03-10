@@ -3,13 +3,15 @@ import { Vex } from "vexflow";
 
 import { clsx } from "clsx";
 import { GearsIcon } from "./components/gears-icon";
+import { ResetIcon } from "./components/reset-icon";
 
 // Constant for number of notes to show
-const NOTES_TO_SHOW = 1;
+const NOTES_TO_SHOW = 3;
 
 const WIDTHS = [110, 160, 210, 230];
-const SCALES = [2.5, 2.2, 1.8, 1.8];
-const PADDING_LEFT = [32, 64, 127, 139];
+const HEIGHTS = [250, 220, 180, 160];
+const SCALES = [2.5, 2.2, 1.8, 1.6];
+const PADDING_LEFT = [32, 64, 127, 172];
 
 type Note = {
   name: string;
@@ -89,7 +91,7 @@ export function App() {
     const renderer = new VF.Renderer(staffRef.current, VF.Renderer.Backends.SVG);
 
     // Configure the rendering context
-    renderer.resize(WIDTHS[NOTES_TO_SHOW - 1] * 4, 250);
+    renderer.resize(WIDTHS[NOTES_TO_SHOW - 1] * 4, HEIGHTS[NOTES_TO_SHOW - 1]);
     const context = renderer.getContext();
     context.setFont("Arial", 12);
     context.scale(SCALES[NOTES_TO_SHOW - 1], SCALES[NOTES_TO_SHOW - 1]);
@@ -162,8 +164,8 @@ export function App() {
       const isCorrect = newUserAnswers.every((note, index) => note.name === currentNotes[index].name);
 
       const feedbackText = isCorrect
-        ? "¡Correcto! La secuencia es: " + currentNotes.map((n) => n.name.toUpperCase()).join(" - ")
-        : "¡Incorrecto! La secuencia correcta es: " + currentNotes.map((n) => n.name.toUpperCase()).join(" - ");
+        ? "¡Correcto!\nRespuesta correcta: " + currentNotes.map((n) => n.name.toUpperCase()).join(" - ")
+        : "¡Incorrecto!\nRespuesta correcta: " + currentNotes.map((n) => n.name.toUpperCase()).join(" - ");
 
       setFeedback(feedbackText);
       setTimeout(generateNewNotes, 2000);
@@ -184,11 +186,23 @@ export function App() {
 
   const candidateNotes = useMemo(() => {
     const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
-    return [...new Set(notesForCurrentClef.map((note) => note.name))]
-      .map((name) => notesForCurrentClef.find((note) => note.name === name)!)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 7);
-  }, [currentClef]);
+    // Get unique notes excluding the current sequence notes
+    const availableNotes = [...new Set(notesForCurrentClef.map((note) => note.name))]
+      .filter((name) => !currentNotes.some((current) => current.name === name))
+      .map((name) => notesForCurrentClef.find((note) => note.name === name)!);
+
+    // Randomly select enough notes to fill up to 6 total (including current sequence)
+    const additionalNotes = availableNotes.sort(() => Math.random() - 0.5).slice(0, 6 - currentNotes.length);
+
+    // Combine current sequence notes with additional random notes and shuffle
+    return [...currentNotes, ...additionalNotes].sort(() => Math.random() - 0.5);
+  }, [currentClef, currentNotes]);
+
+  const handleReset = () => {
+    setUserAnswers([]);
+    setFeedback("");
+    generateNewNotes();
+  };
 
   return (
     <div
@@ -249,7 +263,7 @@ export function App() {
           {feedback && (
             <div
               className={clsx(
-                "p-4 sm:p-6 rounded-tl-xl rounded-tr-xl text-center text-xl sm:text-2xl font-semibold",
+                "p-5 sm:p-7 rounded-tl-xl whitespace-pre rounded-tr-xl text-center text-lg sm:text-2xl font-semibold",
                 feedback.includes("Correcto") ? "text-green-600" : "text-red-500"
               )}
             >
@@ -260,14 +274,29 @@ export function App() {
 
         <div className="max-w-md mx-auto">
           <div className="text-center mb-4">
-            <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4 mb-2">
-              ¿Qué notas son estas? ({userAnswers.length}/{NOTES_TO_SHOW})
-            </p>
-            {userAnswers.length > 0 && (
-              <p className="text-lg text-gray-600 mb-4">
-                Tu secuencia: {userAnswers.map((n) => n.name.toUpperCase()).join(" - ")}
+            <div className="flex items-center justify-center mb-2">
+              <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4">
+                {NOTES_TO_SHOW === 1
+                  ? "¿Qué nota es esta?"
+                  : `¿Qué notas son estas? (${userAnswers.length}/${NOTES_TO_SHOW})`}
               </p>
-            )}
+            </div>
+            <p className="text-lg text-gray-600 mb-4 min-h-[1.8rem]">
+              {userAnswers.length > 0 && (
+                <span className="relative">
+                  {userAnswers.map((n) => n.name.toUpperCase()).join(" - ")}
+                  {userAnswers.length > 0 && !feedback && (
+                    <button
+                      onClick={handleReset}
+                      className="absolute top-1/2 -translate-y-1/2 -right-10 w-8 h-8 flex items-center justify-center bg-white rounded-full text-cyan-500 cursor-pointer hover:bg-cyan-100 transition-colors outline-none"
+                      aria-label="Resetear secuencia"
+                    >
+                      <ResetIcon />
+                    </button>
+                  )}
+                </span>
+              )}
+            </p>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {candidateNotes.map((note) => (
