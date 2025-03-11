@@ -9,6 +9,7 @@ interface Config {
   notesCount: number;
   notation: NotationType;
   mode: GameMode;
+  soundEnabled: boolean;
 }
 
 const DEFAULT_CONFIG: Config = {
@@ -16,24 +17,30 @@ const DEFAULT_CONFIG: Config = {
   notesCount: 1,
   notation: "latin",
   mode: "practice",
+  soundEnabled: true,
 };
 
 export function useConfig() {
   const [config, setConfig] = useState<Config>(() => {
-    const savedConfig = localStorage.getItem("notes-app-config");
-    return savedConfig ? JSON.parse(savedConfig) : DEFAULT_CONFIG;
+    const savedConfig = localStorage.getItem("musicNotesConfig");
+    if (savedConfig) {
+      try {
+        return { ...DEFAULT_CONFIG, ...JSON.parse(savedConfig) };
+      } catch (error) {
+        console.error("Error parsing saved config:", error);
+        return DEFAULT_CONFIG;
+      }
+    }
+    return DEFAULT_CONFIG;
   });
 
   useEffect(() => {
-    localStorage.setItem("notes-app-config", JSON.stringify(config));
+    localStorage.setItem("musicNotesConfig", JSON.stringify(config));
   }, [config]);
 
   const updateConfig = (updates: Partial<Config>) => {
-    setConfig((current) => ({ ...current, ...updates }));
+    setConfig((prev) => ({ ...prev, ...updates }));
   };
 
-  return {
-    config,
-    updateConfig,
-  };
+  return { config, updateConfig };
 }
