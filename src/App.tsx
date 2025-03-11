@@ -88,7 +88,7 @@ export function App() {
     const renderer = new VF.Renderer(staffRef.current, VF.Renderer.Backends.SVG);
 
     const CANVAS_WIDTH = 400;
-    const CANVAS_HEIGHT = 220;
+    const CANVAS_HEIGHT = 200;
     const SCALE = 2;
     const STAVE_WIDTH = 150;
 
@@ -100,7 +100,7 @@ export function App() {
 
     // Create a stave
 
-    const stave = new VF.Stave((CANVAS_WIDTH - STAVE_WIDTH * SCALE) / (2 * SCALE), 0, STAVE_WIDTH);
+    const stave = new VF.Stave((CANVAS_WIDTH - STAVE_WIDTH * SCALE) / (2 * SCALE), -10, STAVE_WIDTH);
     stave.addClef(currentClef);
     stave.setContext(context).draw();
 
