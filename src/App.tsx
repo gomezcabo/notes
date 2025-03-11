@@ -309,7 +309,7 @@ export function App() {
                   <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Número de notas
                   </div>
-                  {[1, 2, 3, 4].map((num) => (
+                  {[1, 2, 3].map((num) => (
                     <button
                       key={`notes-${num}`}
                       onClick={() => handleNotesChange(num)}
@@ -401,7 +401,7 @@ export function App() {
                       : `¿Qué notas son estas? (${userAnswers.length}/${notesToShow})`}
                   </p>
                 </div>
-                <div className={clsx("mb-6 min-h-8 md:text-2xl", notesToShow === 4 ? "text-lg" : "text-2xl")}>
+                <div className={clsx("mb-6 min-h-8 text-2xl")}>
                   {!feedback && userAnswers.length > 0 && (
                     <span className="relative inline-flex items-center gap-2 font-semibold text-cyan-600">
                       {userAnswers.map((n) => getNoteName(n)).join("-")}
