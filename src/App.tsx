@@ -320,12 +320,12 @@ export function App() {
             </div>
             <p className="text-lg text-gray-600 mb-8 min-h-[1.8rem]">
               {userAnswers.length > 0 && (
-                <span className="relative">
+                <span className="relative inline-flex items-center gap-2">
                   {userAnswers.map((n) => n.name.toUpperCase()).join("-")}
                   {userAnswers.length > 0 && !feedback && (
                     <button
                       onClick={handleReset}
-                      className="absolute top-1/2 -translate-y-1/2 -right-10 w-8 h-8 flex items-center justify-center bg-white rounded-full text-cyan-500 cursor-pointer hover:bg-cyan-100 transition-colors outline-none"
+                      className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-cyan-500 cursor-pointer hover:bg-cyan-100 transition-colors outline-none"
                       aria-label="Resetear secuencia"
                     >
                       <ResetIcon />
