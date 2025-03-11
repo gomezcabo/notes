@@ -8,48 +8,50 @@ import { useConfig } from "./hooks/useConfig";
 type Note = {
   name: string;
   key: string;
+  englishName?: string;
 };
 
 type ClefType = "treble" | "bass";
+type NotationType = "latin" | "english";
 
 const TREBLE_NOTES: Note[] = [
-  { name: "La", key: "a/3" },
-  { name: "Si", key: "b/3" },
-  { name: "Do", key: "c/4" },
-  { name: "Re", key: "d/4" },
-  { name: "Mi", key: "e/4" },
-  { name: "Fa", key: "f/4" },
-  { name: "Sol", key: "g/4" },
-  { name: "La", key: "a/4" },
-  { name: "Si", key: "b/4" },
-  { name: "Do", key: "c/5" },
-  { name: "Re", key: "d/5" },
-  { name: "Mi", key: "e/5" },
-  { name: "Fa", key: "f/5" },
-  { name: "Sol", key: "g/5" },
-  { name: "La", key: "a/5" },
-  { name: "Si", key: "b/5" },
-  { name: "Do", key: "c/6" },
+  { name: "La", englishName: "A", key: "a/3" },
+  { name: "Si", englishName: "B", key: "b/3" },
+  { name: "Do", englishName: "C", key: "c/4" },
+  { name: "Re", englishName: "D", key: "d/4" },
+  { name: "Mi", englishName: "E", key: "e/4" },
+  { name: "Fa", englishName: "F", key: "f/4" },
+  { name: "Sol", englishName: "G", key: "g/4" },
+  { name: "La", englishName: "A", key: "a/4" },
+  { name: "Si", englishName: "B", key: "b/4" },
+  { name: "Do", englishName: "C", key: "c/5" },
+  { name: "Re", englishName: "D", key: "d/5" },
+  { name: "Mi", englishName: "E", key: "e/5" },
+  { name: "Fa", englishName: "F", key: "f/5" },
+  { name: "Sol", englishName: "G", key: "g/5" },
+  { name: "La", englishName: "A", key: "a/5" },
+  { name: "Si", englishName: "B", key: "b/5" },
+  { name: "Do", englishName: "C", key: "c/6" },
 ];
 
 const BASS_NOTES: Note[] = [
-  { name: "Do", key: "c/2" },
-  { name: "Re", key: "d/2" },
-  { name: "Mi", key: "e/2" },
-  { name: "Fa", key: "f/2" },
-  { name: "Sol", key: "g/2" },
-  { name: "La", key: "a/2" },
-  { name: "Si", key: "b/2" },
-  { name: "Do", key: "c/3" },
-  { name: "Re", key: "d/3" },
-  { name: "Mi", key: "e/3" },
-  { name: "Fa", key: "f/3" },
-  { name: "Sol", key: "g/3" },
-  { name: "La", key: "a/3" },
-  { name: "Si", key: "b/3" },
-  { name: "Do", key: "c/4" },
-  { name: "Re", key: "d/4" },
-  { name: "Mi", key: "e/4" },
+  { name: "Do", englishName: "C", key: "c/2" },
+  { name: "Re", englishName: "D", key: "d/2" },
+  { name: "Mi", englishName: "E", key: "e/2" },
+  { name: "Fa", englishName: "F", key: "f/2" },
+  { name: "Sol", englishName: "G", key: "g/2" },
+  { name: "La", englishName: "A", key: "a/2" },
+  { name: "Si", englishName: "B", key: "b/2" },
+  { name: "Do", englishName: "C", key: "c/3" },
+  { name: "Re", englishName: "D", key: "d/3" },
+  { name: "Mi", englishName: "E", key: "e/3" },
+  { name: "Fa", englishName: "F", key: "f/3" },
+  { name: "Sol", englishName: "G", key: "g/3" },
+  { name: "La", englishName: "A", key: "a/3" },
+  { name: "Si", englishName: "B", key: "b/3" },
+  { name: "Do", englishName: "C", key: "c/4" },
+  { name: "Re", englishName: "D", key: "d/4" },
+  { name: "Mi", englishName: "E", key: "e/4" },
 ];
 
 export function App() {
@@ -191,12 +193,22 @@ export function App() {
     generateNewNotes();
   };
 
+  const handleNotationChange = (notation: NotationType) => {
+    updateConfig({ notation });
+    setShowClefMenu(false);
+  };
+
   const toggleClefMenu = () => {
     setShowClefMenu(!showClefMenu);
   };
 
+  const getNoteName = (note: Note) => {
+    return config.notation === "latin" ? note.name : note.englishName!;
+  };
+
   const candidateNotes = useMemo(() => {
-    const ALL_NOTE_NAMES = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+    const ALL_NOTE_NAMES =
+      config.notation === "latin" ? ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"] : ["C", "D", "E", "F", "G", "A", "B"];
     const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
 
     // Get all available notes that are not in currentNotes
@@ -208,17 +220,22 @@ export function App() {
     const noteToExclude = availableNotes[Math.floor(Math.random() * availableNotes.length)];
 
     // Get the final list of note names to show (excluding the random note)
-    const noteNamesToShow = ALL_NOTE_NAMES.filter((name) => name !== noteToExclude.name);
+    const noteNamesToShow = ALL_NOTE_NAMES.filter(
+      (name) => name !== (config.notation === "latin" ? noteToExclude.name : noteToExclude.englishName)
+    );
 
     // Map note names back to actual notes from current clef and shuffle
     return noteNamesToShow
-      .map((name) => notesForCurrentClef.find((note) => note.name === name)!)
+      .map(
+        (name) =>
+          notesForCurrentClef.find((note) => (config.notation === "latin" ? note.name : note.englishName) === name)!
+      )
       .sort(() => Math.random() - 0.5)
       .map((note, index) => ({
         ...note,
         uniqueId: `${note.name}-${index}`,
       }));
-  }, [currentClef, currentNotes]);
+  }, [currentClef, currentNotes, config.notation]);
 
   return (
     <div
@@ -241,10 +258,7 @@ export function App() {
 
           {showClefMenu && (
             <div ref={clefMenuRef} className="absolute right-0 top-10 w-48 bg-white rounded-lg shadow-lg py-2">
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
-                Configuración
-              </div>
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
                 Número de notas
               </div>
               {[1, 2, 3, 4].map((num) => (
@@ -260,7 +274,7 @@ export function App() {
                   {num} {num === 1 ? "nota" : "notas"}
                 </button>
               ))}
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
                 Clave
               </div>
               <button
@@ -282,6 +296,33 @@ export function App() {
               >
                 <span className="mr-2 w-4">{currentClef === "bass" ? "✓" : ""}</span>
                 Clave de Fa
+              </button>
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                Notación
+              </div>
+              <button
+                onClick={() => handleNotationChange("latin")}
+                className={clsx(
+                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
+                  config.notation === "latin"
+                    ? "bg-cyan-100 text-cyan-800 font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                <span className="mr-2 w-4">{config.notation === "latin" ? "✓" : ""}</span>
+                Latina (Do, Re, Mi)
+              </button>
+              <button
+                onClick={() => handleNotationChange("english")}
+                className={clsx(
+                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
+                  config.notation === "english"
+                    ? "bg-cyan-100 text-cyan-800 font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                <span className="mr-2 w-4">{config.notation === "english" ? "✓" : ""}</span>
+                Inglesa (C, D, E)
               </button>
             </div>
           )}
@@ -316,7 +357,7 @@ export function App() {
             <div className="text-md mb-6 min-h-8">
               {!feedback && userAnswers.length > 0 && (
                 <span className="relative inline-flex items-center gap-2 text-gray-600">
-                  {userAnswers.map((n) => n.name.toUpperCase()).join("-")}
+                  {userAnswers.map((n) => getNoteName(n)).join("-")}
                 </span>
               )}
               {feedback && (
@@ -324,13 +365,13 @@ export function App() {
                   {feedback.includes("Incorrecto") && (
                     <>
                       <span className="text-red-500 font-semibold line-through">
-                        {userAnswers.map((n) => n.name.toUpperCase()).join("-")}
+                        {userAnswers.map((n) => getNoteName(n)).join("-")}
                       </span>
                       <span className="text-gray-500">→</span>
                     </>
                   )}
                   <span className="text-green-600 font-semibold">
-                    {currentNotes.map((n) => n.name.toUpperCase()).join("-")}
+                    {currentNotes.map((n) => getNoteName(n)).join("-")}
                   </span>
                 </div>
               )}
@@ -347,7 +388,7 @@ export function App() {
                   (feedback !== "" || userAnswers.length >= notesToShow) && "disabled:opacity-50 pointer-events-none"
                 )}
               >
-                {note.name.toUpperCase()}
+                {getNoteName(note).toUpperCase()}
               </button>
             ))}
           </div>

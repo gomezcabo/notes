@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 
 type ClefType = "treble" | "bass";
+type NotationType = "latin" | "english";
 
 interface Config {
   clef: ClefType;
   notesCount: number;
+  notation: NotationType;
 }
 
 const DEFAULT_CONFIG: Config = {
   clef: "treble",
   notesCount: 1,
+  notation: "latin",
 };
 
 export function useConfig() {
