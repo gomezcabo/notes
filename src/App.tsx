@@ -144,7 +144,7 @@ export function App() {
 
   useEffect(() => {
     generateNewNotes();
-  }, []);
+  }, [generateNewNotes]);
 
   useEffect(() => {
     generateNewNotes();
@@ -401,7 +401,7 @@ export function App() {
                       : `¿Qué notas son estas? (${userAnswers.length}/${notesToShow})`}
                   </p>
                 </div>
-                <div className="text-lg md:text-2xl mb-6 min-h-8">
+                <div className={clsx("mb-6 min-h-8 md:text-2xl", notesToShow === 4 ? "text-lg" : "text-2xl")}>
                   {!feedback && userAnswers.length > 0 && (
                     <span className="relative inline-flex items-center gap-2 font-semibold text-cyan-600">
                       {userAnswers.map((n) => getNoteName(n)).join("-")}
