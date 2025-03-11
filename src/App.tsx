@@ -433,7 +433,7 @@ export function App() {
                     Tarjetas de memoria
                   </button>
 
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                  <div className="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Número de notas
                   </div>
                   {[1, 2, 3].map((num) => (
@@ -452,7 +452,7 @@ export function App() {
                     </button>
                   ))}
 
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                  <div className="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Clave
                   </div>
                   <button
@@ -480,7 +480,7 @@ export function App() {
                     Clave de Fa
                   </button>
 
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                  <div className="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Notación
                   </div>
                   <button
@@ -508,7 +508,7 @@ export function App() {
                     Inglesa (C, D, E)
                   </button>
 
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                  <div className="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Sonido
                   </div>
                   <button
