@@ -4,6 +4,7 @@ import { Vex } from "vexflow";
 import { clsx } from "clsx";
 import { GearsIcon } from "./components/gears-icon";
 import { ResetIcon } from "./components/reset-icon";
+import { useConfig } from "./hooks/useConfig";
 
 type Note = {
   name: string;
@@ -53,8 +54,9 @@ const BASS_NOTES: Note[] = [
 ];
 
 export function App() {
-  const [currentClef, setCurrentClef] = useState<ClefType>("treble");
-  const [notesToShow, setNotesToShow] = useState<number>(4);
+  const { config, updateConfig } = useConfig();
+  const [currentClef, setCurrentClef] = useState<ClefType>(config.clef);
+  const [notesToShow, setNotesToShow] = useState<number>(config.notesCount);
   const [currentNotes, setCurrentNotes] = useState<Note[]>([]);
   const [userAnswers, setUserAnswers] = useState<Note[]>([]);
   const [feedback, setFeedback] = useState("");
@@ -176,6 +178,7 @@ export function App() {
   const handleClefChange = (clef: ClefType) => {
     if (clef !== currentClef) {
       setCurrentClef(clef);
+      updateConfig({ clef });
       setUserAnswers([]);
       setFeedback("");
       setShowClefMenu(false);
@@ -184,6 +187,7 @@ export function App() {
 
   const handleNotesChange = (num: number) => {
     setNotesToShow(num);
+    updateConfig({ notesCount: num });
     setUserAnswers([]);
     setFeedback("");
     setShowClefMenu(false);
@@ -234,64 +238,64 @@ export function App() {
         "from-pink-400 to-teal-300": feedback === "",
       })}
     >
-      <div className="fixed top-4 right-4 z-50">
-        <button
-          onClick={toggleClefMenu}
-          className="w-12 h-12 flex items-center cursor-pointer justify-center bg-white hover:bg-gray-100 rounded-full shadow-lg transition-colors"
-          aria-label="Configuración de clave"
-        >
-          <GearsIcon />
-        </button>
+      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-8 sm:p-16 mx-auto">
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            onClick={toggleClefMenu}
+            className="w-8 h-8 flex items-center cursor-pointer justify-center bg-gray-50 hover:bg-gray-100 rounded-full shadow-sm transition-colors"
+            aria-label="Configuración de clave"
+          >
+            <GearsIcon className="w-4 h-4 text-gray-700" />
+          </button>
 
-        {showClefMenu && (
-          <div ref={clefMenuRef} className="absolute right-0 top-14 w-48 bg-white rounded-lg shadow-lg py-2">
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
-              Configuración
-            </div>
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
-              Número de notas
-            </div>
-            {[1, 2, 3, 4].map((num) => (
+          {showClefMenu && (
+            <div ref={clefMenuRef} className="absolute right-0 top-10 w-48 bg-white rounded-lg shadow-lg py-2">
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                Configuración
+              </div>
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                Número de notas
+              </div>
+              {[1, 2, 3, 4].map((num) => (
+                <button
+                  key={`notes-${num}`}
+                  onClick={() => handleNotesChange(num)}
+                  className={clsx(
+                    "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
+                    notesToShow === num ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
+                  )}
+                >
+                  <span className="mr-2 w-4">{notesToShow === num ? "✓" : ""}</span>
+                  {num} {num === 1 ? "nota" : "notas"}
+                </button>
+              ))}
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                Clave
+              </div>
               <button
-                key={`notes-${num}`}
-                onClick={() => handleNotesChange(num)}
+                onClick={() => handleClefChange("treble")}
                 className={clsx(
                   "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                  notesToShow === num ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
+                  currentClef === "treble" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
                 )}
               >
-                <span className="mr-2 w-4">{notesToShow === num ? "✓" : ""}</span>
-                {num} {num === 1 ? "nota" : "notas"}
+                <span className="mr-2 w-4">{currentClef === "treble" ? "✓" : ""}</span>
+                Clave de Sol
               </button>
-            ))}
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
-              Clave
+              <button
+                onClick={() => handleClefChange("bass")}
+                className={clsx(
+                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
+                  currentClef === "bass" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                <span className="mr-2 w-4">{currentClef === "bass" ? "✓" : ""}</span>
+                Clave de Fa
+              </button>
             </div>
-            <button
-              onClick={() => handleClefChange("treble")}
-              className={clsx(
-                "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                currentClef === "treble" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
-              )}
-            >
-              <span className="mr-2 w-4">{currentClef === "treble" ? "✓" : ""}</span>
-              Clave de Sol
-            </button>
-            <button
-              onClick={() => handleClefChange("bass")}
-              className={clsx(
-                "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                currentClef === "bass" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
-              )}
-            >
-              <span className="mr-2 w-4">{currentClef === "bass" ? "✓" : ""}</span>
-              Clave de Fa
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-8 sm:p-16 mx-auto">
         <div className="flex justify-center mt-8 sm:mt-0">
           <div ref={staffRef} className="staff-container"></div>
         </div>
