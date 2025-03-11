@@ -164,13 +164,11 @@ export function App() {
 
     if (newUserAnswers.length === notesToShow) {
       const isCorrect = newUserAnswers.every((note, index) => note.name === currentNotes[index].name);
-
-      const feedbackText = isCorrect
-        ? "¡Correcto!\n" + currentNotes.map((n) => n.name.toUpperCase()).join("-")
-        : "¡Incorrecto!\n" + currentNotes.map((n) => n.name.toUpperCase()).join("-");
+      const feedbackText = isCorrect ? "¡Correcto!" : "¡Incorrecto!";
 
       setFeedback(feedbackText);
-      setTimeout(generateNewNotes, 2000);
+      setUserAnswers(newUserAnswers);
+      setTimeout(generateNewNotes, 2000000);
     }
   };
 
@@ -231,7 +229,7 @@ export function App() {
         "from-pink-400 to-teal-300": feedback === "",
       })}
     >
-      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-8 sm:p-16 mx-auto">
+      <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-16 mx-auto">
         <div className="absolute top-4 right-4 z-10">
           <button
             onClick={toggleClefMenu}
@@ -308,20 +306,35 @@ export function App() {
 
         <div className="max-w-md mx-auto">
           <div className="text-center mb-4">
-            <div className="flex items-center justify-center mb-4">
+            <div className="flex items-center justify-center mb-2">
               <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4">
                 {notesToShow === 1
                   ? "¿Qué nota es esta?"
                   : `¿Qué notas son estas? (${userAnswers.length}/${notesToShow})`}
               </p>
             </div>
-            <p className="text-lg text-gray-600 mb-8 min-h-8">
-              {userAnswers.length > 0 && (
-                <span className="relative inline-flex items-center gap-2">
+            <div className="text-md mb-6 min-h-8">
+              {!feedback && userAnswers.length > 0 && (
+                <span className="relative inline-flex items-center gap-2 text-gray-600">
                   {userAnswers.map((n) => n.name.toUpperCase()).join("-")}
                 </span>
               )}
-            </p>
+              {feedback && (
+                <div className="flex items-center justify-center gap-1">
+                  {feedback.includes("Incorrecto") && (
+                    <>
+                      <span className="text-red-500 font-semibold line-through">
+                        {userAnswers.map((n) => n.name.toUpperCase()).join("-")}
+                      </span>
+                      <span className="text-gray-500">→</span>
+                    </>
+                  )}
+                  <span className="text-green-600 font-semibold">
+                    {currentNotes.map((n) => n.name.toUpperCase()).join("-")}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {candidateNotes.map((note) => (
