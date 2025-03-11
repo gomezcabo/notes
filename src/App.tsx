@@ -322,7 +322,7 @@ export function App() {
                   : `¿Qué notas son estas? (${userAnswers.length}/${notesToShow})`}
               </p>
             </div>
-            <p className="text-lg text-gray-600 mb-8 min-h-[1.8rem]">
+            <p className="text-lg text-gray-600 mb-8 min-h-[1.9rem]">
               {userAnswers.length > 0 && (
                 <span className="relative inline-flex items-center gap-2">
                   {userAnswers.map((n) => n.name.toUpperCase()).join("-")}
