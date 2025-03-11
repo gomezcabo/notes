@@ -3,7 +3,6 @@ import { Vex } from "vexflow";
 
 import { clsx } from "clsx";
 import { GearsIcon } from "./components/gears-icon";
-import { ResetIcon } from "./components/reset-icon";
 import { useConfig } from "./hooks/useConfig";
 
 type Note = {
@@ -223,12 +222,6 @@ export function App() {
       }));
   }, [currentClef, currentNotes]);
 
-  const handleReset = () => {
-    setUserAnswers([]);
-    setFeedback("");
-    generateNewNotes();
-  };
-
   return (
     <div
       className={clsx({
@@ -326,15 +319,6 @@ export function App() {
               {userAnswers.length > 0 && (
                 <span className="relative inline-flex items-center gap-2">
                   {userAnswers.map((n) => n.name.toUpperCase()).join("-")}
-                  {userAnswers.length > 0 && !feedback && (
-                    <button
-                      onClick={handleReset}
-                      className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-cyan-500 cursor-pointer hover:bg-cyan-100 transition-colors outline-none"
-                      aria-label="Resetear secuencia"
-                    >
-                      <ResetIcon />
-                    </button>
-                  )}
                 </span>
               )}
             </p>
