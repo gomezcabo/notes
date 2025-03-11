@@ -386,7 +386,17 @@ export function App() {
           </div>
         </div>
 
-        <div className="flex justify-center mt-8 sm:mt-0">
+        {feedback && (
+          <div className="absolute top-6 sm:top-8 inset-x-0 text-center z-10">
+            <span
+              className={clsx("text-2xl font-bold", feedback.includes("Correcto") ? "text-green-600" : "text-red-600")}
+            >
+              {feedback}
+            </span>
+          </div>
+        )}
+
+        <div className="flex justify-center mt-12 sm:mt-0">
           <div ref={staffRef} className="staff-container" />
         </div>
 
