@@ -392,11 +392,7 @@ export function App() {
             {showClefMenu && (
               <div
                 ref={clefMenuRef}
-                className={clsx(
-                  "sm:absolute sm:right-0 sm:top-full sm:-mt-12 sm:w-48 bg-white sm:rounded-lg shadow-xl border border-gray-100",
-                  "fixed sm:static inset-0 z-50 sm:z-auto",
-                  "sm:py-2 flex flex-col"
-                )}
+                className="fixed inset-0 sm:absolute sm:inset-auto sm:right-0 sm:top-[-8px] sm:mt-2 sm:w-72 bg-white sm:rounded-lg shadow-xl z-50 border border-gray-200 overflow-y-auto sm:overflow-hidden"
               >
                 <div className="sm:hidden flex items-center justify-between p-4 border-b border-gray-200">
                   <h2 className="text-lg font-semibold text-gray-900">Configuración</h2>
@@ -512,23 +508,19 @@ export function App() {
                     Inglesa (C, D, E)
                   </button>
 
-                  <div className="px-4 py-3 border-t border-gray-100">
-                    <h3 className="text-sm font-medium text-gray-600 mb-2">Sonido</h3>
-                    <div className="space-y-2">
-                      <button
-                        onClick={handleSoundToggle}
-                        className={clsx(
-                          "flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors",
-                          config.soundEnabled
-                            ? "bg-cyan-100 text-cyan-800 font-medium"
-                            : "text-gray-700 hover:bg-gray-100"
-                        )}
-                      >
-                        <span className="mr-2 w-4">{config.soundEnabled ? "✓" : ""}</span>
-                        {config.soundEnabled ? "Sonido activado" : "Sonido desactivado"}
-                      </button>
-                    </div>
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                    Sonido
                   </div>
+                  <button
+                    onClick={handleSoundToggle}
+                    className={clsx(
+                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      config.soundEnabled ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    <span className="mr-2 w-4">{config.soundEnabled ? "✓" : ""}</span>
+                    {config.soundEnabled ? "Sonido activado" : "Sonido desactivado"}
+                  </button>
                 </div>
               </div>
             )}
