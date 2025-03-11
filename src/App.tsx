@@ -63,8 +63,6 @@ export function App() {
   const [userAnswers, setUserAnswers] = useState<Note[]>([]);
   const [feedback, setFeedback] = useState("");
   const [showClefMenu, setShowClefMenu] = useState(false);
-  const [showNoteName, setShowNoteName] = useState(false);
-  const [lastAnswerTime, setLastAnswerTime] = useState(0);
   const staffRef = useRef<HTMLDivElement>(null!);
   const clefMenuRef = useRef<HTMLDivElement>(null!);
 
@@ -84,7 +82,10 @@ export function App() {
   const renderStaff = useCallback(() => {
     if (currentNotes.length !== notesToShow) return;
 
-    staffRef.current!.innerHTML = "";
+    if (staffRef.current) {
+      staffRef.current.innerHTML = "";
+    }
+
     const VF = Vex.Flow;
     const renderer = new VF.Renderer(staffRef.current, VF.Renderer.Backends.SVG);
 
@@ -138,18 +139,23 @@ export function App() {
     setCurrentNotes(newNotes);
     setUserAnswers([]);
     setFeedback("");
-    setShowNoteName(false);
   }, [currentClef, notesToShow]);
+
+  useEffect(() => {
+    generateNewNotes();
+  }, []);
 
   useEffect(() => {
     generateNewNotes();
   }, [currentClef, notesToShow, generateNewNotes]);
 
   useEffect(() => {
-    if (staffRef.current) {
-      renderStaff();
+    if (staffRef.current && currentNotes.length > 0) {
+      requestAnimationFrame(() => {
+        renderStaff();
+      });
     }
-  }, [currentNotes, staffRef, renderStaff]);
+  }, [currentNotes, renderStaff]);
 
   const handleNoteClick = (selectedNote: Note) => {
     if (userAnswers.length >= notesToShow || feedback !== "") return;
@@ -172,29 +178,22 @@ export function App() {
     if (clef !== currentClef) {
       setCurrentClef(clef);
       updateConfig({ clef });
-      setUserAnswers([]);
-      setFeedback("");
-      setShowNoteName(false);
+      generateNewNotes();
       setShowClefMenu(false);
     }
   };
 
   const handleNotesChange = (num: number) => {
-    setNotesToShow(num);
-    updateConfig({ notesCount: num });
-    setUserAnswers([]);
-    setFeedback("");
-    setShowNoteName(false);
-    setShowClefMenu(false);
-    generateNewNotes();
+    if (num !== notesToShow) {
+      setNotesToShow(num);
+      updateConfig({ notesCount: num });
+      setShowClefMenu(false);
+    }
   };
 
   const handleModeChange = (mode: GameMode) => {
     updateConfig({ mode });
     setShowClefMenu(false);
-    setShowNoteName(false);
-    setUserAnswers([]);
-    setFeedback("");
     generateNewNotes();
   };
 
@@ -205,14 +204,6 @@ export function App() {
 
   const toggleClefMenu = () => {
     setShowClefMenu(!showClefMenu);
-  };
-
-  const toggleNoteName = () => {
-    const now = Date.now();
-    if (now - lastAnswerTime > 500) {
-      setShowNoteName(!showNoteName);
-      setLastAnswerTime(now);
-    }
   };
 
   const getNoteName = (note: Note) => {
@@ -367,16 +358,7 @@ export function App() {
           )}
         </div>
 
-        <div
-          className={clsx("flex justify-center mt-8 sm:mt-0", {
-            "cursor-pointer": config.mode === "flashcards",
-          })}
-          onClick={() => {
-            if (config.mode === "flashcards") {
-              toggleNoteName();
-            }
-          }}
-        >
+        <div className="flex justify-center mt-8 sm:mt-0">
           <div ref={staffRef} className="staff-container" />
         </div>
 
@@ -416,19 +398,15 @@ export function App() {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center gap-4">
-                <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4">
-                  {showNoteName ? "Memoriza la posición" : "Toca el pentagrama para ver la nota"}
+                <p className="text-2xl font-bold text-cyan-600">{currentNotes.map((n) => getNoteName(n)).join("-")}</p>
+                <p className="text-lg text-gray-600">
+                  Memoriza la posición de {notesToShow === 1 ? "la nota" : "las notas"}
                 </p>
-                {showNoteName && (
-                  <p className="text-2xl font-bold text-cyan-600">
-                    {currentNotes.map((n) => getNoteName(n)).join("-")}
-                  </p>
-                )}
                 <button
                   onClick={generateNewNotes}
-                  className="mt-4 px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+                  className="mt-4 px-6 py-3 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors text-lg"
                 >
-                  Siguiente nota
+                  Siguiente
                 </button>
               </div>
             )}
