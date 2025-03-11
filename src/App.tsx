@@ -4,6 +4,7 @@ import { Vex } from "vexflow";
 import { clsx } from "clsx";
 import { GearsIcon } from "./components/gears-icon";
 import { useConfig } from "./hooks/useConfig";
+import { CloseIcon } from "./components/close-icon";
 
 type Note = {
   name: string;
@@ -247,115 +248,142 @@ export function App() {
       })}
     >
       <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-16 mx-auto">
-        <div className="absolute top-4 right-4 z-50">
-          <button
-            onClick={toggleClefMenu}
-            className="w-12 h-12 flex items-center cursor-pointer justify-center bg-gray-50 hover:bg-gray-100 rounded-full shadow-sm transition-colors"
-            aria-label="Configuración"
-          >
-            <GearsIcon className="w-6 h-6 text-gray-700" />
-          </button>
+        <div className="absolute top-4 right-4 z-50 flex justify-end">
+          <div className="relative flex flex-col items-end">
+            <button
+              onClick={toggleClefMenu}
+              className="w-12 h-12 flex items-center cursor-pointer justify-center bg-gray-50 hover:bg-gray-100 rounded-full shadow-sm transition-colors"
+              aria-label="Configuración"
+            >
+              <GearsIcon className="w-6 h-6 text-gray-700" />
+            </button>
 
-          {showClefMenu && (
-            <div ref={clefMenuRef} className="absolute right-0 top-14 w-48 bg-white rounded-lg shadow-lg py-2">
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
-                Modo
-              </div>
-              <button
-                onClick={() => handleModeChange("practice")}
+            {showClefMenu && (
+              <div
+                ref={clefMenuRef}
                 className={clsx(
-                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                  config.mode === "practice"
-                    ? "bg-cyan-100 text-cyan-800 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
+                  "sm:absolute sm:right-0 sm:top-full sm:-mt-12 sm:w-48 bg-white sm:rounded-lg shadow-xl border border-gray-100",
+                  "fixed sm:static inset-0 z-50 sm:z-auto",
+                  "sm:py-2 flex flex-col"
                 )}
               >
-                <span className="mr-2 w-4">{config.mode === "practice" ? "✓" : ""}</span>
-                Práctica
-              </button>
-              <button
-                onClick={() => handleModeChange("flashcards")}
-                className={clsx(
-                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                  config.mode === "flashcards"
-                    ? "bg-cyan-100 text-cyan-800 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
-                )}
-              >
-                <span className="mr-2 w-4">{config.mode === "flashcards" ? "✓" : ""}</span>
-                Tarjetas de memoria
-              </button>
+                <div className="sm:hidden flex items-center justify-between p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">Configuración</h2>
+                  <button
+                    onClick={() => setShowClefMenu(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
+                  >
+                    <CloseIcon />
+                  </button>
+                </div>
 
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
-                Número de notas
-              </div>
-              {[1, 2, 3, 4].map((num) => (
-                <button
-                  key={`notes-${num}`}
-                  onClick={() => handleNotesChange(num)}
-                  className={clsx(
-                    "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                    notesToShow === num ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
-                  )}
-                >
-                  <span className="mr-2 w-4">{notesToShow === num ? "✓" : ""}</span>
-                  {num} {num === 1 ? "nota" : "notas"}
-                </button>
-              ))}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                    Modo
+                  </div>
+                  <button
+                    onClick={() => handleModeChange("practice")}
+                    className={clsx(
+                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      config.mode === "practice"
+                        ? "bg-cyan-100 text-cyan-800 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    <span className="mr-2 w-4">{config.mode === "practice" ? "✓" : ""}</span>
+                    Práctica
+                  </button>
+                  <button
+                    onClick={() => handleModeChange("flashcards")}
+                    className={clsx(
+                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      config.mode === "flashcards"
+                        ? "bg-cyan-100 text-cyan-800 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    <span className="mr-2 w-4">{config.mode === "flashcards" ? "✓" : ""}</span>
+                    Tarjetas de memoria
+                  </button>
 
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
-                Clave
-              </div>
-              <button
-                onClick={() => handleClefChange("treble")}
-                className={clsx(
-                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                  currentClef === "treble" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
-                )}
-              >
-                <span className="mr-2 w-4">{currentClef === "treble" ? "✓" : ""}</span>
-                Clave de Sol
-              </button>
-              <button
-                onClick={() => handleClefChange("bass")}
-                className={clsx(
-                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                  currentClef === "bass" ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
-                )}
-              >
-                <span className="mr-2 w-4">{currentClef === "bass" ? "✓" : ""}</span>
-                Clave de Fa
-              </button>
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                    Número de notas
+                  </div>
+                  {[1, 2, 3, 4].map((num) => (
+                    <button
+                      key={`notes-${num}`}
+                      onClick={() => handleNotesChange(num)}
+                      className={clsx(
+                        "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                        notesToShow === num
+                          ? "bg-cyan-100 text-cyan-800 font-medium"
+                          : "text-gray-700 hover:bg-gray-100"
+                      )}
+                    >
+                      <span className="mr-2 w-4">{notesToShow === num ? "✓" : ""}</span>
+                      {num} {num === 1 ? "nota" : "notas"}
+                    </button>
+                  ))}
 
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
-                Notación
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                    Clave
+                  </div>
+                  <button
+                    onClick={() => handleClefChange("treble")}
+                    className={clsx(
+                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      currentClef === "treble"
+                        ? "bg-cyan-100 text-cyan-800 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    <span className="mr-2 w-4">{currentClef === "treble" ? "✓" : ""}</span>
+                    Clave de Sol
+                  </button>
+                  <button
+                    onClick={() => handleClefChange("bass")}
+                    className={clsx(
+                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      currentClef === "bass"
+                        ? "bg-cyan-100 text-cyan-800 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    <span className="mr-2 w-4">{currentClef === "bass" ? "✓" : ""}</span>
+                    Clave de Fa
+                  </button>
+
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                    Notación
+                  </div>
+                  <button
+                    onClick={() => handleNotationChange("latin")}
+                    className={clsx(
+                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      config.notation === "latin"
+                        ? "bg-cyan-100 text-cyan-800 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    <span className="mr-2 w-4">{config.notation === "latin" ? "✓" : ""}</span>
+                    Latina (Do, Re, Mi)
+                  </button>
+                  <button
+                    onClick={() => handleNotationChange("english")}
+                    className={clsx(
+                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      config.notation === "english"
+                        ? "bg-cyan-100 text-cyan-800 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    <span className="mr-2 w-4">{config.notation === "english" ? "✓" : ""}</span>
+                    Inglesa (C, D, E)
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => handleNotationChange("latin")}
-                className={clsx(
-                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                  config.notation === "latin"
-                    ? "bg-cyan-100 text-cyan-800 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
-                )}
-              >
-                <span className="mr-2 w-4">{config.notation === "latin" ? "✓" : ""}</span>
-                Latina (Do, Re, Mi)
-              </button>
-              <button
-                onClick={() => handleNotationChange("english")}
-                className={clsx(
-                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
-                  config.notation === "english"
-                    ? "bg-cyan-100 text-cyan-800 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
-                )}
-              >
-                <span className="mr-2 w-4">{config.notation === "english" ? "✓" : ""}</span>
-                Inglesa (C, D, E)
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <div className="flex justify-center mt-8 sm:mt-0">
