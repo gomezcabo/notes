@@ -85,9 +85,8 @@ export function App() {
   const renderStaff = useCallback(() => {
     if (currentNotes.length !== notesToShow) return;
 
-    if (staffRef.current) {
-      staffRef.current.innerHTML = "";
-    }
+    if (!staffRef.current) return;
+    staffRef.current.innerHTML = "";
 
     const VF = Vex.Flow;
     const renderer = new VF.Renderer(staffRef.current, VF.Renderer.Backends.SVG);
@@ -127,10 +126,23 @@ export function App() {
   }, [currentNotes, currentClef, notesToShow]);
 
   const generateNewNotes = useCallback(() => {
-    const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
+    // Limpiar el estado actual
+    setUserAnswers([]);
+    setFeedback("");
+
+    // Limpiar el pentagrama
+    if (staffRef.current) {
+      staffRef.current.innerHTML = "";
+    }
+
+    // Usar la clave actual del estado, no de una closure
+    const currentClefValue = currentClef;
+    const notesForCurrentClef = currentClefValue === "treble" ? TREBLE_NOTES : BASS_NOTES;
     const newNotes: Note[] = [];
 
-    while (newNotes.length < notesToShow) {
+    // Usar el número actual de notas del estado
+    const currentNotesToShow = notesToShow;
+    while (newNotes.length < currentNotesToShow) {
       const randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
       const newNote = notesForCurrentClef[randomIndex];
 
@@ -139,21 +151,21 @@ export function App() {
       }
     }
 
+    // Actualizar el estado con las nuevas notas
     setCurrentNotes(newNotes);
-    setUserAnswers([]);
-    setFeedback("");
   }, [currentClef, notesToShow]);
 
+  // Efecto para generar notas iniciales solo una vez al inicio
   useEffect(() => {
+    // Generar notas iniciales
     generateNewNotes();
-  }, [generateNewNotes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dependencia vacía para ejecutar solo una vez
 
-  useEffect(() => {
-    generateNewNotes();
-  }, [currentClef, notesToShow, generateNewNotes]);
-
+  // Efecto para renderizar el pentagrama cuando cambian las notas
   useEffect(() => {
     if (staffRef.current && currentNotes.length > 0) {
+      // Usar requestAnimationFrame para asegurar que el DOM está listo
       requestAnimationFrame(() => {
         renderStaff();
       });
@@ -236,17 +248,73 @@ export function App() {
 
   const handleClefChange = (clef: ClefType) => {
     if (clef !== currentClef) {
+      // Limpiar el pentagrama antes de cambiar la clave
+      if (staffRef.current) {
+        staffRef.current.innerHTML = "";
+      }
+
+      // Limpiar respuestas y feedback
+      setUserAnswers([]);
+      setFeedback("");
+
+      // Actualizar la clave
       setCurrentClef(clef);
       updateConfig({ clef });
-      generateNewNotes();
+
+      // Generar nuevas notas con la nueva clave
+      // Usamos una función que captura la nueva clave en su closure
+      setTimeout(() => {
+        const notesForNewClef = clef === "treble" ? TREBLE_NOTES : BASS_NOTES;
+        const newNotes: Note[] = [];
+
+        while (newNotes.length < notesToShow) {
+          const randomIndex = Math.floor(Math.random() * notesForNewClef.length);
+          const newNote = notesForNewClef[randomIndex];
+
+          if (newNotes.length === 0 || newNotes[newNotes.length - 1].key !== newNote.key) {
+            newNotes.push(newNote);
+          }
+        }
+
+        setCurrentNotes(newNotes);
+      }, 50);
+
       setShowClefMenu(false);
     }
   };
 
   const handleNotesChange = (num: number) => {
     if (num !== notesToShow) {
+      // Limpiar el pentagrama
+      if (staffRef.current) {
+        staffRef.current.innerHTML = "";
+      }
+
+      // Limpiar respuestas y feedback
+      setUserAnswers([]);
+      setFeedback("");
+
+      // Actualizar el número de notas
       setNotesToShow(num);
       updateConfig({ notesCount: num });
+
+      // Generar nuevas notas con el nuevo número
+      setTimeout(() => {
+        const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
+        const newNotes: Note[] = [];
+
+        while (newNotes.length < num) {
+          const randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
+          const newNote = notesForCurrentClef[randomIndex];
+
+          if (newNotes.length === 0 || newNotes[newNotes.length - 1].key !== newNote.key) {
+            newNotes.push(newNote);
+          }
+        }
+
+        setCurrentNotes(newNotes);
+      }, 50);
+
       setShowClefMenu(false);
     }
   };
