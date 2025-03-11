@@ -168,7 +168,7 @@ export function App() {
 
       setFeedback(feedbackText);
       setUserAnswers(newUserAnswers);
-      setTimeout(generateNewNotes, 2000000);
+      setTimeout(generateNewNotes, 2000);
     }
   };
 
