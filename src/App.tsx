@@ -13,6 +13,7 @@ type Note = {
 
 type ClefType = "treble" | "bass";
 type NotationType = "latin" | "english";
+type GameMode = "practice" | "flashcards";
 
 const TREBLE_NOTES: Note[] = [
   { name: "La", englishName: "A", key: "a/3" },
@@ -62,6 +63,8 @@ export function App() {
   const [userAnswers, setUserAnswers] = useState<Note[]>([]);
   const [feedback, setFeedback] = useState("");
   const [showClefMenu, setShowClefMenu] = useState(false);
+  const [showNoteName, setShowNoteName] = useState(false);
+  const [lastAnswerTime, setLastAnswerTime] = useState(0);
   const staffRef = useRef<HTMLDivElement>(null!);
   const clefMenuRef = useRef<HTMLDivElement>(null!);
 
@@ -79,13 +82,9 @@ export function App() {
   }, []);
 
   const renderStaff = useCallback(() => {
-    // Only render if we have the correct number of notes
     if (currentNotes.length !== notesToShow) return;
 
-    // Clear previous rendering
     staffRef.current!.innerHTML = "";
-
-    // Create a VexFlow renderer with the staff container
     const VF = Vex.Flow;
     const renderer = new VF.Renderer(staffRef.current, VF.Renderer.Backends.SVG);
 
@@ -94,19 +93,15 @@ export function App() {
     const SCALE = 2;
     const STAVE_WIDTH = 150;
 
-    // Configure the rendering context
     renderer.resize(CANVAS_WIDTH, CANVAS_HEIGHT);
     const context = renderer.getContext();
     context.setFont("Arial", 12);
     context.scale(SCALE, SCALE);
 
-    // Create a stave
-
     const stave = new VF.Stave((CANVAS_WIDTH - STAVE_WIDTH * SCALE) / (2 * SCALE), -10, STAVE_WIDTH);
     stave.addClef(currentClef);
     stave.setContext(context).draw();
 
-    // Create notes
     const notes = currentNotes.map((note) => {
       const staveNote = new VF.StaveNote({
         clef: currentClef,
@@ -114,14 +109,12 @@ export function App() {
         duration: "q",
       });
 
-      // Set stem direction based on note position
       const lineNumber = staveNote.getKeyLine(0);
       staveNote.setStemDirection(lineNumber >= 3 ? -1 : 1);
 
       return staveNote;
     });
 
-    // Create a voice and add the notes
     const voice = new VF.Voice({ num_beats: notesToShow, beat_value: 4 });
     voice.addTickables(notes);
 
@@ -137,7 +130,6 @@ export function App() {
       const randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
       const newNote = notesForCurrentClef[randomIndex];
 
-      // Avoid repeating the same note consecutively
       if (newNotes.length === 0 || newNotes[newNotes.length - 1].key !== newNote.key) {
         newNotes.push(newNote);
       }
@@ -146,6 +138,7 @@ export function App() {
     setCurrentNotes(newNotes);
     setUserAnswers([]);
     setFeedback("");
+    setShowNoteName(false);
   }, [currentClef, notesToShow]);
 
   useEffect(() => {
@@ -159,7 +152,7 @@ export function App() {
   }, [currentNotes, staffRef, renderStaff]);
 
   const handleNoteClick = (selectedNote: Note) => {
-    if (userAnswers.length >= notesToShow) return;
+    if (userAnswers.length >= notesToShow || feedback !== "") return;
 
     const newUserAnswers = [...userAnswers, selectedNote];
     setUserAnswers(newUserAnswers);
@@ -169,8 +162,9 @@ export function App() {
       const feedbackText = isCorrect ? "¡Correcto!" : "¡Incorrecto!";
 
       setFeedback(feedbackText);
-      setUserAnswers(newUserAnswers);
-      setTimeout(generateNewNotes, 2000);
+      setTimeout(() => {
+        generateNewNotes();
+      }, 2000);
     }
   };
 
@@ -180,6 +174,7 @@ export function App() {
       updateConfig({ clef });
       setUserAnswers([]);
       setFeedback("");
+      setShowNoteName(false);
       setShowClefMenu(false);
     }
   };
@@ -189,7 +184,17 @@ export function App() {
     updateConfig({ notesCount: num });
     setUserAnswers([]);
     setFeedback("");
+    setShowNoteName(false);
     setShowClefMenu(false);
+    generateNewNotes();
+  };
+
+  const handleModeChange = (mode: GameMode) => {
+    updateConfig({ mode });
+    setShowClefMenu(false);
+    setShowNoteName(false);
+    setUserAnswers([]);
+    setFeedback("");
     generateNewNotes();
   };
 
@@ -202,6 +207,14 @@ export function App() {
     setShowClefMenu(!showClefMenu);
   };
 
+  const toggleNoteName = () => {
+    const now = Date.now();
+    if (now - lastAnswerTime > 500) {
+      setShowNoteName(!showNoteName);
+      setLastAnswerTime(now);
+    }
+  };
+
   const getNoteName = (note: Note) => {
     return config.notation === "latin" ? note.name : note.englishName!;
   };
@@ -211,20 +224,16 @@ export function App() {
       config.notation === "latin" ? ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"] : ["C", "D", "E", "F", "G", "A", "B"];
     const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
 
-    // Get all available notes that are not in currentNotes
     const availableNotes = notesForCurrentClef.filter(
       (note) => !currentNotes.some((current) => current.name === note.name)
     );
 
-    // Pick one random note to exclude
     const noteToExclude = availableNotes[Math.floor(Math.random() * availableNotes.length)];
 
-    // Get the final list of note names to show (excluding the random note)
     const noteNamesToShow = ALL_NOTE_NAMES.filter(
       (name) => name !== (config.notation === "latin" ? noteToExclude.name : noteToExclude.englishName)
     );
 
-    // Map note names back to actual notes from current clef and shuffle
     return noteNamesToShow
       .map(
         (name) =>
@@ -247,17 +256,45 @@ export function App() {
       })}
     >
       <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-16 mx-auto">
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-50">
           <button
             onClick={toggleClefMenu}
-            className="w-8 h-8 flex items-center cursor-pointer justify-center bg-gray-50 hover:bg-gray-100 rounded-full shadow-sm transition-colors"
-            aria-label="Configuración de clave"
+            className="w-12 h-12 flex items-center cursor-pointer justify-center bg-gray-50 hover:bg-gray-100 rounded-full shadow-sm transition-colors"
+            aria-label="Configuración"
           >
-            <GearsIcon className="w-4 h-4 text-gray-700" />
+            <GearsIcon className="w-6 h-6 text-gray-700" />
           </button>
 
           {showClefMenu && (
-            <div ref={clefMenuRef} className="absolute right-0 top-10 w-48 bg-white rounded-lg shadow-lg py-2">
+            <div ref={clefMenuRef} className="absolute right-0 top-14 w-48 bg-white rounded-lg shadow-lg py-2">
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
+                Modo
+              </div>
+              <button
+                onClick={() => handleModeChange("practice")}
+                className={clsx(
+                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
+                  config.mode === "practice"
+                    ? "bg-cyan-100 text-cyan-800 font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                <span className="mr-2 w-4">{config.mode === "practice" ? "✓" : ""}</span>
+                Práctica
+              </button>
+              <button
+                onClick={() => handleModeChange("flashcards")}
+                className={clsx(
+                  "w-full text-left px-4 py-2 text-sm flex items-center cursor-pointer",
+                  config.mode === "flashcards"
+                    ? "bg-cyan-100 text-cyan-800 font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                <span className="mr-2 w-4">{config.mode === "flashcards" ? "✓" : ""}</span>
+                Tarjetas de memoria
+              </button>
+
               <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
                 Número de notas
               </div>
@@ -274,6 +311,7 @@ export function App() {
                   {num} {num === 1 ? "nota" : "notas"}
                 </button>
               ))}
+
               <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
                 Clave
               </div>
@@ -297,7 +335,8 @@ export function App() {
                 <span className="mr-2 w-4">{currentClef === "bass" ? "✓" : ""}</span>
                 Clave de Fa
               </button>
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-300">
                 Notación
               </div>
               <button
@@ -328,70 +367,90 @@ export function App() {
           )}
         </div>
 
-        <div className="flex justify-center mt-8 sm:mt-0">
-          <div ref={staffRef} className="staff-container"></div>
-        </div>
-
-        <div className="absolute top-0 left-0 w-full">
-          {feedback && (
-            <div
-              className={clsx(
-                "p-5 sm:p-7 rounded-tl-xl whitespace-pre rounded-tr-xl text-center text-lg sm:text-2xl font-semibold",
-                feedback.includes("Correcto") ? "text-green-600" : "text-red-500"
-              )}
-            >
-              {feedback}
-            </div>
-          )}
+        <div
+          className={clsx("flex justify-center mt-8 sm:mt-0", {
+            "cursor-pointer": config.mode === "flashcards",
+          })}
+          onClick={() => {
+            if (config.mode === "flashcards") {
+              toggleNoteName();
+            }
+          }}
+        >
+          <div ref={staffRef} className="staff-container" />
         </div>
 
         <div className="max-w-md mx-auto">
           <div className="text-center mb-4">
-            <div className="flex items-center justify-center mb-2">
-              <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4">
-                {notesToShow === 1
-                  ? "¿Qué nota es esta?"
-                  : `¿Qué notas son estas? (${userAnswers.length}/${notesToShow})`}
-              </p>
-            </div>
-            <div className="text-md mb-6 min-h-8">
-              {!feedback && userAnswers.length > 0 && (
-                <span className="relative inline-flex items-center gap-2 text-gray-600">
-                  {userAnswers.map((n) => getNoteName(n)).join("-")}
-                </span>
-              )}
-              {feedback && (
-                <div className="flex items-center justify-center gap-1">
-                  {feedback.includes("Incorrecto") && (
-                    <>
-                      <span className="text-red-500 font-semibold line-through">
-                        {userAnswers.map((n) => getNoteName(n)).join("-")}
-                      </span>
-                      <span className="text-gray-500">→</span>
-                    </>
-                  )}
-                  <span className="text-green-600 font-semibold">
-                    {currentNotes.map((n) => getNoteName(n)).join("-")}
-                  </span>
+            {config.mode === "practice" ? (
+              <>
+                <div className="flex items-center justify-center mb-2">
+                  <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4">
+                    {notesToShow === 1
+                      ? "¿Qué nota es esta?"
+                      : `¿Qué notas son estas? (${userAnswers.length}/${notesToShow})`}
+                  </p>
                 </div>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {candidateNotes.map((note) => (
-              <button
-                disabled={feedback !== "" || userAnswers.length >= notesToShow}
-                key={note.uniqueId}
-                onClick={() => handleNoteClick(note)}
-                className={clsx(
-                  "cursor-pointer bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-3 md:py-3 md:px-4 rounded-xl shadow-md transform hover:scale-105 transition-all duration-200 text-lg",
-                  (feedback !== "" || userAnswers.length >= notesToShow) && "disabled:opacity-50 pointer-events-none"
+                <div className="text-lg md:text-2xl mb-6 min-h-8">
+                  {!feedback && userAnswers.length > 0 && (
+                    <span className="relative inline-flex items-center gap-2 font-semibold text-cyan-600">
+                      {userAnswers.map((n) => getNoteName(n)).join("-")}
+                    </span>
+                  )}
+                  {feedback && (
+                    <div className="flex items-center justify-center gap-1">
+                      {feedback.includes("Incorrecto") && (
+                        <>
+                          <span className="text-red-500 font-semibold line-through">
+                            {userAnswers.map((n) => getNoteName(n)).join("-")}
+                          </span>
+                          <span className="text-gray-500">→</span>
+                        </>
+                      )}
+                      <span className="text-green-600 font-semibold">
+                        {currentNotes.map((n) => getNoteName(n)).join("-")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-4">
+                <p className="text-xl md:text-2xl font-semibold text-black mt-2 md:mt-4">
+                  {showNoteName ? "Memoriza la posición" : "Toca el pentagrama para ver la nota"}
+                </p>
+                {showNoteName && (
+                  <p className="text-2xl font-bold text-cyan-600">
+                    {currentNotes.map((n) => getNoteName(n)).join("-")}
+                  </p>
                 )}
-              >
-                {getNoteName(note).toUpperCase()}
-              </button>
-            ))}
+                <button
+                  onClick={generateNewNotes}
+                  className="mt-4 px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+                >
+                  Siguiente nota
+                </button>
+              </div>
+            )}
           </div>
+
+          {config.mode === "practice" && (
+            <div className="grid grid-cols-3 gap-3">
+              {candidateNotes.map((note) => (
+                <button
+                  disabled={feedback !== "" || userAnswers.length >= notesToShow}
+                  key={note.uniqueId}
+                  onClick={() => handleNoteClick(note)}
+                  className={clsx(
+                    "cursor-pointer bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-3 md:py-3 md:px-4 rounded-xl shadow-md transform hover:scale-105 transition-all duration-200 text-lg",
+                    (feedback !== "" || userAnswers.length >= notesToShow) && "disabled:opacity-50 pointer-events-none"
+                  )}
+                >
+                  {getNoteName(note).toUpperCase()}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
