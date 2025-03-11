@@ -16,6 +16,7 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.30.0",
     "tailwindcss": "^4.0.9",
+    "tone": "^15.0.4",
     "vexflow": "^4.2.5"
   },
   "devDependencies": {

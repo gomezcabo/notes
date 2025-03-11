@@ -5,6 +5,7 @@ import { clsx } from "clsx";
 import { GearsIcon } from "./components/gears-icon";
 import { useConfig } from "./hooks/useConfig";
 import { CloseIcon } from "./components/close-icon";
+import { useAudio } from "./hooks/useAudio";
 
 type Note = {
   name: string;
@@ -58,6 +59,7 @@ const BASS_NOTES: Note[] = [
 
 export function App() {
   const { config, updateConfig } = useConfig();
+  const { playNotes, isLoaded } = useAudio();
   const [currentClef, setCurrentClef] = useState<ClefType>(config.clef);
   const [notesToShow, setNotesToShow] = useState<number>(config.notesCount);
   const [currentNotes, setCurrentNotes] = useState<Note[]>([]);
@@ -158,8 +160,65 @@ export function App() {
     }
   }, [currentNotes, renderStaff]);
 
+  useEffect(() => {
+    if (currentNotes.length > 0 && isLoaded && config.soundEnabled) {
+      const timer = setTimeout(() => {
+        playNotes(currentNotes);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentNotes, isLoaded, playNotes, config.soundEnabled]);
+
   const handleNoteClick = (selectedNote: Note) => {
     if (userAnswers.length >= notesToShow || feedback !== "") return;
+
+    // Reproducir el sonido de la nota seleccionada
+    if (isLoaded && config.soundEnabled) {
+      // Determinar qué nota reproducir
+      let noteToPlay: Note;
+
+      // Si estamos en el último paso y la nota seleccionada es correcta
+      if (userAnswers.length === notesToShow - 1 && selectedNote.name === currentNotes[userAnswers.length].name) {
+        // Reproducir la nota correcta a la altura correcta
+        noteToPlay = currentNotes[userAnswers.length];
+      } else {
+        // Si la nota es incorrecta o no es el último paso, reproducir la nota seleccionada
+        // a la altura más cercana a la nota correcta
+        const correctNote = currentNotes[userAnswers.length];
+        const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
+
+        // Encontrar la nota con el mismo nombre que la seleccionada y más cercana a la correcta
+        const sameNameNotes = notesForCurrentClef.filter((n) =>
+          config.notation === "latin" ? n.name === selectedNote.name : n.englishName === selectedNote.englishName
+        );
+
+        if (sameNameNotes.length > 0) {
+          // Encontrar la nota más cercana a la correcta
+          noteToPlay = sameNameNotes.reduce((closest, note) => {
+            const correctKeyParts = correctNote.key.split("/");
+            const noteKeyParts = note.key.split("/");
+            const closestKeyParts = closest.key.split("/");
+
+            const correctOctave = parseInt(correctKeyParts[1]);
+            const noteOctave = parseInt(noteKeyParts[1]);
+            const closestOctave = parseInt(closestKeyParts[1]);
+
+            // Calcular la distancia en octavas
+            const noteDist = Math.abs(noteOctave - correctOctave);
+            const closestDist = Math.abs(closestOctave - correctOctave);
+
+            return noteDist < closestDist ? note : closest;
+          }, sameNameNotes[0]);
+        } else {
+          // Si no hay notas con el mismo nombre, usar la seleccionada
+          noteToPlay = selectedNote;
+        }
+      }
+
+      // Reproducir la nota
+      playNotes([noteToPlay]);
+    }
 
     const newUserAnswers = [...userAnswers, selectedNote];
     setUserAnswers(newUserAnswers);
@@ -237,6 +296,10 @@ export function App() {
         uniqueId: `${note.name}-${index}`,
       }));
   }, [currentClef, currentNotes, config.notation]);
+
+  const handleSoundToggle = () => {
+    updateConfig({ soundEnabled: !config.soundEnabled });
+  };
 
   return (
     <div
@@ -380,6 +443,24 @@ export function App() {
                     <span className="mr-2 w-4">{config.notation === "english" ? "✓" : ""}</span>
                     Inglesa (C, D, E)
                   </button>
+
+                  <div className="px-4 py-3 border-t border-gray-100">
+                    <h3 className="text-sm font-medium text-gray-600 mb-2">Sonido</h3>
+                    <div className="space-y-2">
+                      <button
+                        onClick={handleSoundToggle}
+                        className={clsx(
+                          "flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors",
+                          config.soundEnabled
+                            ? "bg-cyan-100 text-cyan-800 font-medium"
+                            : "text-gray-700 hover:bg-gray-100"
+                        )}
+                      >
+                        <span className="mr-2 w-4">{config.soundEnabled ? "✓" : ""}</span>
+                        {config.soundEnabled ? "Sonido activado" : "Sonido desactivado"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -396,8 +477,10 @@ export function App() {
           </div>
         )}
 
-        <div className="flex justify-center mt-12 sm:mt-0">
-          <div ref={staffRef} className="staff-container" />
+        <div className="flex flex-col items-center justify-center mt-12 sm:mt-0">
+          <div className="relative">
+            <div ref={staffRef} className="staff-container" />
+          </div>
         </div>
 
         <div className="max-w-md mx-auto">
