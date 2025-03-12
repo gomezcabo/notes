@@ -7,7 +7,7 @@ type Note = {
   englishName?: string;
 };
 
-// Mapping de notas a frecuencias MIDI
+// Mapping of notes to MIDI frequencies
 const NOTE_TO_MIDI: { [key: string]: string } = {
   "c/2": "C2",
   "d/2": "D2",
@@ -40,8 +40,8 @@ const NOTE_TO_MIDI: { [key: string]: string } = {
   "c/6": "C6",
 };
 
-// Tipos de duración de notas
-type NoteDuration = "4n" | "8n" | "16n" | "32n" | "64n"; // negra, corchea, semicorchea, fusa, semifusa
+// Note duration types
+type NoteDuration = "4n" | "8n" | "16n" | "32n" | "64n"; // quarter, eighth, sixteenth, thirty-second, sixty-fourth
 
 export function useAudio() {
   const pianoRef = useRef<Tone.Sampler | null>(null);
@@ -49,12 +49,12 @@ export function useAudio() {
   const [isIOSDevice, setIsIOSDevice] = useState(false);
 
   useEffect(() => {
-    // Detectar si es un dispositivo iOS
+    // Detect if it's an iOS device
     const userAgent = navigator.userAgent || navigator.vendor;
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !userAgent.includes("Windows Phone");
     setIsIOSDevice(isIOS);
 
-    // Inicializar el piano con samples realistas
+    // Initialize the piano with realistic samples
     pianoRef.current = new Tone.Sampler({
       urls: {
         C4: "C4.mp3",
@@ -86,49 +86,49 @@ export function useAudio() {
       if (!pianoRef.current || !isLoaded) return;
 
       try {
-        // Asegurarse de que Tone.js está inicializado
+        // Make sure Tone.js is initialized
         await Tone.start();
 
-        // En iOS, necesitamos asegurarnos de que el contexto de audio esté en estado "running"
+        // On iOS, we need to make sure the audio context is in "running" state
         if (isIOSDevice && Tone.context.state !== "running") {
           await Tone.context.resume();
         }
 
-        // Determinar la duración y espaciado de las notas según el tipo y velocidad
-        let noteDuration: NoteDuration = "4n"; // Por defecto, negras
-        let noteSpacing = 0.5; // Por defecto, 0.5 segundos entre notas
+        // Determine the duration and spacing of notes based on type and speed
+        let noteDuration: NoteDuration = "4n"; // Default, quarter notes
+        let noteSpacing = 0.5; // Default, 0.5 seconds between notes
 
         if (noteType === "scale") {
           if (speed === "veryfast") {
-            noteDuration = "64n"; // Fusas
-            noteSpacing = 0.04; // Muy rápido
+            noteDuration = "64n"; // Sixty-fourth notes
+            noteSpacing = 0.04; // Very fast
           } else if (speed === "fast") {
-            noteDuration = "16n"; // Semicorcheas
-            noteSpacing = 0.12; // Rápido
+            noteDuration = "16n"; // Sixteenth notes
+            noteSpacing = 0.12; // Fast
           } else {
-            noteDuration = "8n"; // Corcheas
-            noteSpacing = 0.25; // Normal para escala
+            noteDuration = "8n"; // Eighth notes
+            noteSpacing = 0.25; // Normal for scale
           }
         }
 
-        // Si usamos el pedal sostenuto, todas las notas se mantienen hasta el final
+        // If using the sustain pedal, all notes are held until the end
         if (useSustainPedal && noteType === "scale") {
           const now = Tone.now();
 
-          // Calcular el tiempo total de la escala
-          const totalDuration = (notes.length - 1) * noteSpacing + 1; // +1 segundo extra para la última nota
+          // Calculate the total duration of the scale
+          const totalDuration = (notes.length - 1) * noteSpacing + 1; // +1 extra second for the last note
 
-          // Reproducir cada nota con ataque en secuencia pero liberación al final
+          // Play each note with attack in sequence but release at the end
           notes.forEach((note, index) => {
             const noteName = NOTE_TO_MIDI[note.key];
             if (noteName) {
               const attackTime = now + index * noteSpacing;
-              // Solo usamos triggerAttack para mantener la nota sonando
+              // Only use triggerAttack to keep the note sounding
               pianoRef.current?.triggerAttack(noteName, attackTime);
 
-              // Programar la liberación de todas las notas al final
+              // Schedule the release of all notes at the end
               if (index === notes.length - 1) {
-                // Liberar todas las notas después de que termine la escala
+                // Release all notes after the scale ends
                 setTimeout(() => {
                   pianoRef.current?.releaseAll();
                 }, totalDuration * 1000);
@@ -136,7 +136,7 @@ export function useAudio() {
             }
           });
         } else {
-          // Comportamiento normal: cada nota suena y se apaga según su duración
+          // Normal behavior: each note sounds and stops according to its duration
           const now = Tone.now();
           notes.forEach((note, index) => {
             const noteName = NOTE_TO_MIDI[note.key];
@@ -147,7 +147,7 @@ export function useAudio() {
           });
         }
       } catch (error) {
-        console.error("Error al reproducir las notas:", error);
+        console.error("Error playing notes:", error);
       }
     },
     [isLoaded, isIOSDevice]

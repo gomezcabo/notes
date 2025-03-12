@@ -12,13 +12,13 @@ export function AppContainer() {
 
   const handleStart = async () => {
     try {
-      // Inicializar Tone.js solo si el sonido está habilitado
+      // Initialize Tone.js only if sound is enabled
       if (config.soundEnabled) {
         await Tone.start();
 
-        // Reproducir una escala completa Do-Re-Mi-Fa-Sol-La-Si-Do en fusas (muy rápido)
+        // Play a complete scale Do-Re-Mi-Fa-Sol-La-Si-Do in very fast tempo
         if (isLoaded) {
-          // Crear la escala completa
+          // Create the complete scale
           const scaleNotes = [
             { name: "Sol", englishName: "G", key: "g/3" },
             { name: "Do", englishName: "C", key: "c/4" },
@@ -28,20 +28,20 @@ export function AppContainer() {
             { name: "Do", englishName: "C", key: "c/5" },
           ];
 
-          // Reproducir la escala en modo "veryfast" (fusas) con efecto de pedal sostenuto
+          // Play the scale in "veryfast" mode with sustain pedal effect
           playNotes(scaleNotes, "scale", "veryfast", true);
 
-          // Esperar un momento antes de continuar solo si el sonido está habilitado
-          // Aumentamos el tiempo de espera para permitir que se escuche el efecto del pedal
+          // Wait a moment before continuing only if sound is enabled
+          // Increased wait time to allow the pedal effect to be heard
           await new Promise((resolve) => setTimeout(resolve, 1500));
         }
       }
 
-      // Ocultar la pantalla de bienvenida
+      // Hide the welcome screen
       setShowWelcome(false);
     } catch (error) {
-      console.error("Error al iniciar la aplicación:", error);
-      // Si hay un error, igualmente permitir continuar
+      console.error("Error starting the application:", error);
+      // If there's an error, still allow continuing
       setShowWelcome(false);
     }
   };

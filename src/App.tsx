@@ -129,21 +129,21 @@ export function App() {
   }, [currentNotes, currentClef, notesToShow]);
 
   const generateNewNotes = useCallback(() => {
-    // Limpiar el estado actual
+    // Clear current state
     setUserAnswers([]);
     setFeedback("");
 
-    // Limpiar el pentagrama
+    // Clear the staff
     if (staffRef.current) {
       staffRef.current.innerHTML = "";
     }
 
-    // Usar la clave actual del estado, no de una closure
+    // Use the current clef from state, not from a closure
     const currentClefValue = currentClef;
     const notesForCurrentClef = currentClefValue === "treble" ? TREBLE_NOTES : BASS_NOTES;
     const newNotes: Note[] = [];
 
-    // Usar el número actual de notas del estado
+    // Use the current number of notes from state
     const currentNotesToShow = notesToShow;
     while (newNotes.length < currentNotesToShow) {
       const randomIndex = Math.floor(Math.random() * notesForCurrentClef.length);
@@ -154,31 +154,31 @@ export function App() {
       }
     }
 
-    // Actualizar el estado con las nuevas notas
+    // Update state with new notes
     setCurrentNotes(newNotes);
 
-    // La reproducción automática se manejará en el efecto que observa cambios en currentNotes
+    // Automatic playback will be handled in the effect that observes changes in currentNotes
   }, [currentClef, notesToShow]);
 
-  // Efecto para generar notas iniciales solo una vez al inicio
+  // Effect to generate initial notes only once at startup
   useEffect(() => {
     generateNewNotes();
   }, [generateNewNotes]);
 
-  // Efecto para renderizar el pentagrama cuando cambian las notas
+  // Effect to render the staff when notes change
   useEffect(() => {
     if (staffRef.current && currentNotes.length > 0) {
-      // Usar requestAnimationFrame para asegurar que el DOM está listo
+      // Use requestAnimationFrame to ensure the DOM is ready
       requestAnimationFrame(() => {
         renderStaff();
       });
     }
   }, [currentNotes, renderStaff]);
 
-  // Efecto para inicializar el audio automáticamente cuando la aplicación se carga
+  // Effect to initialize audio automatically when the application loads
   useEffect(() => {
     if (!audioInitialized && isLoaded) {
-      // Crear un contexto de audio si no existe
+      // Create an audio context if it doesn't exist
       if (!audioContextRef.current) {
         try {
           const AudioContextClass =
@@ -188,26 +188,26 @@ export function App() {
             audioContextRef.current = new AudioContextClass();
           }
         } catch (error) {
-          console.warn("No se pudo crear el contexto de audio:", error);
+          console.warn("Could not create audio context:", error);
         }
       }
 
-      // Marcar como inicializado
+      // Mark as initialized
       setAudioInitialized(true);
     }
   }, [audioInitialized, isLoaded]);
 
-  // Efecto para reproducir las notas automáticamente cuando cambian (excepto en la primera carga)
+  // Effect to play notes automatically when they change (except on first load)
   useEffect(() => {
-    // Si es la primera carga, marcar como ya no es primera carga y salir sin reproducir
+    // If it's the first load, mark as no longer first load and exit without playing
     if (isFirstLoadRef.current) {
       isFirstLoadRef.current = false;
       return;
     }
 
-    // Solo reproducir si hay notas, el audio está inicializado y el sonido está habilitado
+    // Only play if there are notes, audio is initialized, and sound is enabled
     if (currentNotes.length > 0 && audioInitialized && isLoaded && config.soundEnabled) {
-      // Pequeño retraso para asegurar que todo está listo
+      // Small delay to ensure everything is ready
       const timer = setTimeout(() => {
         playNotes(currentNotes, "normal", "normal", false);
       }, 500);
@@ -219,28 +219,28 @@ export function App() {
   const handleNoteClick = (selectedNote: Note) => {
     if (userAnswers.length >= notesToShow || feedback !== "") return;
 
-    // Reproducir el sonido de la nota seleccionada
+    // Play the sound of the selected note
     if (isLoaded && config.soundEnabled) {
-      // Determinar qué nota reproducir
+      // Determine which note to play
       let noteToPlay: Note;
 
-      // Si estamos en el último paso y la nota seleccionada es correcta
+      // If we're on the last step and the selected note is correct
       if (userAnswers.length === notesToShow - 1 && selectedNote.name === currentNotes[userAnswers.length].name) {
-        // Reproducir la nota correcta a la altura correcta
+        // Play the correct note at the correct pitch
         noteToPlay = currentNotes[userAnswers.length];
       } else {
-        // Si la nota es incorrecta o no es el último paso, reproducir la nota seleccionada
-        // a la altura más cercana a la nota correcta
+        // If the note is incorrect or not the last step, play the selected note
+        // at the pitch closest to the correct note
         const correctNote = currentNotes[userAnswers.length];
         const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
 
-        // Encontrar la nota con el mismo nombre que la seleccionada y más cercana a la correcta
+        // Find the note with the same name as the selected one and closest to the correct one
         const sameNameNotes = notesForCurrentClef.filter((n) =>
           config.notation === "latin" ? n.name === selectedNote.name : n.englishName === selectedNote.englishName
         );
 
         if (sameNameNotes.length > 0) {
-          // Encontrar la nota más cercana a la correcta
+          // Find the note closest to the correct one
           noteToPlay = sameNameNotes.reduce((closest, note) => {
             const correctKeyParts = correctNote.key.split("/");
             const noteKeyParts = note.key.split("/");
@@ -250,19 +250,19 @@ export function App() {
             const noteOctave = parseInt(noteKeyParts[1]);
             const closestOctave = parseInt(closestKeyParts[1]);
 
-            // Calcular la distancia en octavas
+            // Calculate the distance in octaves
             const noteDist = Math.abs(noteOctave - correctOctave);
             const closestDist = Math.abs(closestOctave - correctOctave);
 
             return noteDist < closestDist ? note : closest;
           }, sameNameNotes[0]);
         } else {
-          // Si no hay notas con el mismo nombre, usar la seleccionada
+          // If there are no notes with the same name, use the selected one
           noteToPlay = selectedNote;
         }
       }
 
-      // Reproducir la nota
+      // Play the note
       playNotes([noteToPlay], "normal", "normal", false);
     }
 
@@ -288,21 +288,21 @@ export function App() {
 
   const handleClefChange = (clef: ClefType) => {
     if (clef !== currentClef) {
-      // Limpiar el pentagrama antes de cambiar la clave
+      // Clear the staff before changing the clef
       if (staffRef.current) {
         staffRef.current.innerHTML = "";
       }
 
-      // Limpiar respuestas y feedback
+      // Clear answers and feedback
       setUserAnswers([]);
       setFeedback("");
 
-      // Actualizar la clave
+      // Update the clef
       setCurrentClef(clef);
       updateConfig({ clef });
 
-      // Generar nuevas notas con la nueva clave
-      // Usamos una función que captura la nueva clave en su closure
+      // Generate new notes with the new clef
+      // We use a function that captures the new clef in its closure
       setTimeout(() => {
         const notesForNewClef = clef === "treble" ? TREBLE_NOTES : BASS_NOTES;
         const newNotes: Note[] = [];
@@ -325,20 +325,20 @@ export function App() {
 
   const handleNotesChange = (num: number) => {
     if (num !== notesToShow) {
-      // Limpiar el pentagrama
+      // Clear the staff
       if (staffRef.current) {
         staffRef.current.innerHTML = "";
       }
 
-      // Limpiar respuestas y feedback
+      // Clear answers and feedback
       setUserAnswers([]);
       setFeedback("");
 
-      // Actualizar el número de notas
+      // Update the number of notes
       setNotesToShow(num);
       updateConfig({ notesCount: num });
 
-      // Generar nuevas notas con el nuevo número
+      // Generate new notes with the new number
       setTimeout(() => {
         const notesForCurrentClef = currentClef === "treble" ? TREBLE_NOTES : BASS_NOTES;
         const newNotes: Note[] = [];
@@ -403,11 +403,11 @@ export function App() {
     const newSoundEnabled = !config.soundEnabled;
     updateConfig({ soundEnabled: newSoundEnabled });
 
-    // Si el usuario está activando el sonido, inicializar el audio
+    // If the user is enabling sound, initialize audio
     if (newSoundEnabled && isIOSDevice && audioContextRef.current) {
       audioContextRef.current.resume().catch(console.error);
 
-      // Reproducir una nota para activar el audio en iOS
+      // Play a note to activate audio on iOS
       if (currentNotes.length > 0) {
         playNotes([currentNotes[0]], "normal", "normal", false);
       }

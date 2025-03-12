@@ -11,7 +11,7 @@ export function WelcomeScreen({ onStart, isIOSDevice }: WelcomeScreenProps) {
 
   return (
     <div className="w-full h-auto relative max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-16 mx-auto text-center">
-      <h1 className="text-3xl sm:text-4xl font-bold text-cyan-600 mb-6">Bienvenido a Notas Musicales</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold text-cyan-600 mb-6">Bienvenido a AdivinaLaNota</h1>
       <p className="text-lg text-gray-700 mb-8">
         Aprende a identificar notas musicales en el pentagrama de forma divertida.
       </p>
