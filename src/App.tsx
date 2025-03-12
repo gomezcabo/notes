@@ -274,8 +274,13 @@ export function App() {
       const feedbackText = isCorrect ? "¡Correcto!" : "¡Incorrecto!";
 
       setFeedback(feedbackText);
+
+      // Prevent layout shift by waiting for animation frame before generating new notes
       setTimeout(() => {
-        generateNewNotes();
+        // Use requestAnimationFrame to ensure smooth transition
+        requestAnimationFrame(() => {
+          generateNewNotes();
+        });
       }, 2000);
     }
   };
@@ -584,7 +589,7 @@ export function App() {
 
         <div className="flex flex-col items-center justify-center mt-12 sm:mt-0">
           <div className="relative">
-            <div ref={staffRef} className="staff-container" />
+            <div ref={staffRef} className="staff-container h-[200px]" />
           </div>
         </div>
 
