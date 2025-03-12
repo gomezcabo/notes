@@ -20,11 +20,7 @@ export function WelcomeScreen({ onStart, isIOSDevice }: WelcomeScreenProps) {
       >
         Empezar
       </button>
-      {config.soundEnabled ? (
-        <p className="mt-4 text-sm text-gray-500">
-          {isIOSDevice ? "Al hacer clic en Empezar, se activará el sonido en tu dispositivo iOS." : ""}
-        </p>
-      ) : (
+      {!config.soundEnabled && (
         <p className="mt-4 text-sm text-gray-500">El sonido está desactivado. Puedes activarlo en la configuración.</p>
       )}
     </div>
