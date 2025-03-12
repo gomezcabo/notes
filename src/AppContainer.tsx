@@ -7,7 +7,7 @@ import * as Tone from "tone";
 
 export function AppContainer() {
   const [showWelcome, setShowWelcome] = useState(true);
-  const { isLoaded, playNotes, isIOSDevice } = useAudio();
+  const { isLoaded, playNotes } = useAudio();
   const { config } = useConfig();
 
   const handleStart = async () => {
@@ -50,7 +50,7 @@ export function AppContainer() {
     <>
       {showWelcome ? (
         <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-4 sm:p-8 bg-gradient-to-b from-pink-400 to-teal-300">
-          <WelcomeScreen onStart={handleStart} isIOSDevice={isIOSDevice && config.soundEnabled} />
+          <WelcomeScreen onStart={handleStart} />
         </div>
       ) : (
         <App />

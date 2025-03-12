@@ -2,10 +2,9 @@ import { useConfig } from "../hooks/useConfig";
 
 interface WelcomeScreenProps {
   onStart: () => void;
-  isIOSDevice: boolean;
 }
 
-export function WelcomeScreen({ onStart, isIOSDevice }: WelcomeScreenProps) {
+export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
   const { config } = useConfig();
 
   return (
