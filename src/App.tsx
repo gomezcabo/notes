@@ -274,13 +274,8 @@ export function App() {
       const feedbackText = isCorrect ? "¡Correcto!" : "¡Incorrecto!";
 
       setFeedback(feedbackText);
-
-      // Prevent layout shift by waiting for animation frame before generating new notes
       setTimeout(() => {
-        // Use requestAnimationFrame to ensure smooth transition
-        requestAnimationFrame(() => {
-          generateNewNotes();
-        });
+        generateNewNotes();
       }, 2000);
     }
   };
@@ -461,7 +456,7 @@ export function App() {
                   <button
                     onClick={() => handleModeChange("practice")}
                     className={clsx(
-                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      "w-full text-left px-4 py-2 sm:py-2 text-sm flex items-center cursor-pointer",
                       config.mode === "practice"
                         ? "bg-cyan-100 text-cyan-800 font-medium"
                         : "text-gray-700 hover:bg-gray-100"
@@ -473,7 +468,7 @@ export function App() {
                   <button
                     onClick={() => handleModeChange("flashcards")}
                     className={clsx(
-                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      "w-full text-left px-4 py-2 sm:py-2 text-sm flex items-center cursor-pointer",
                       config.mode === "flashcards"
                         ? "bg-cyan-100 text-cyan-800 font-medium"
                         : "text-gray-700 hover:bg-gray-100"
@@ -483,7 +478,7 @@ export function App() {
                     Tarjetas de memoria
                   </button>
 
-                  <div className="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                  <div className="px-4 py-2 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Número de notas
                   </div>
                   {[1, 2, 3].map((num) => (
@@ -491,7 +486,7 @@ export function App() {
                       key={`notes-${num}`}
                       onClick={() => handleNotesChange(num)}
                       className={clsx(
-                        "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                        "w-full text-left px-4 py-2 sm:py-2 text-sm flex items-center cursor-pointer",
                         notesToShow === num
                           ? "bg-cyan-100 text-cyan-800 font-medium"
                           : "text-gray-700 hover:bg-gray-100"
@@ -502,13 +497,13 @@ export function App() {
                     </button>
                   ))}
 
-                  <div className="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                  <div className="px-4 py-2 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Clave
                   </div>
                   <button
                     onClick={() => handleClefChange("treble")}
                     className={clsx(
-                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      "w-full text-left px-4 py-2 sm:py-2 text-sm flex items-center cursor-pointer",
                       currentClef === "treble"
                         ? "bg-cyan-100 text-cyan-800 font-medium"
                         : "text-gray-700 hover:bg-gray-100"
@@ -520,7 +515,7 @@ export function App() {
                   <button
                     onClick={() => handleClefChange("bass")}
                     className={clsx(
-                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      "w-full text-left px-4 py-2 sm:py-2 text-sm flex items-center cursor-pointer",
                       currentClef === "bass"
                         ? "bg-cyan-100 text-cyan-800 font-medium"
                         : "text-gray-700 hover:bg-gray-100"
@@ -530,13 +525,13 @@ export function App() {
                     Clave de Fa
                   </button>
 
-                  <div className="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                  <div className="px-4 py-2 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Notación
                   </div>
                   <button
                     onClick={() => handleNotationChange("latin")}
                     className={clsx(
-                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      "w-full text-left px-4 py-2 sm:py-2 text-sm flex items-center cursor-pointer",
                       config.notation === "latin"
                         ? "bg-cyan-100 text-cyan-800 font-medium"
                         : "text-gray-700 hover:bg-gray-100"
@@ -548,7 +543,7 @@ export function App() {
                   <button
                     onClick={() => handleNotationChange("english")}
                     className={clsx(
-                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      "w-full text-left px-4 py-2 sm:py-2 text-sm flex items-center cursor-pointer",
                       config.notation === "english"
                         ? "bg-cyan-100 text-cyan-800 font-medium"
                         : "text-gray-700 hover:bg-gray-100"
@@ -558,13 +553,13 @@ export function App() {
                     Inglesa (C, D, E)
                   </button>
 
-                  <div className="px-4 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
+                  <div className="px-4 py-2 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider sm:border-b border-gray-300">
                     Sonido
                   </div>
                   <button
                     onClick={handleSoundToggle}
                     className={clsx(
-                      "w-full text-left px-4 py-3 sm:py-2 text-sm flex items-center cursor-pointer",
+                      "w-full text-left px-4 py-2 sm:py-2 text-sm flex items-center cursor-pointer",
                       config.soundEnabled ? "bg-cyan-100 text-cyan-800 font-medium" : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
