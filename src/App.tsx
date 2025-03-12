@@ -66,6 +66,7 @@ export function App() {
   const [userAnswers, setUserAnswers] = useState<Note[]>([]);
   const [feedback, setFeedback] = useState("");
   const [showClefMenu, setShowClefMenu] = useState(false);
+  const [audioInitialized, setAudioInitialized] = useState(false);
   const staffRef = useRef<HTMLDivElement>(null!);
   const clefMenuRef = useRef<HTMLDivElement>(null!);
 
@@ -153,6 +154,8 @@ export function App() {
 
     // Actualizar el estado con las nuevas notas
     setCurrentNotes(newNotes);
+
+    // La reproducción automática se manejará en el efecto que observa cambios en currentNotes
   }, [currentClef, notesToShow]);
 
   // Efecto para generar notas iniciales solo una vez al inicio
@@ -172,21 +175,58 @@ export function App() {
     }
   }, [currentNotes, renderStaff]);
 
+  // Modificar para intentar reproducir automáticamente
   useEffect(() => {
+    // Intentar reproducir automáticamente cuando las notas cambian
     if (currentNotes.length > 0 && isLoaded && config.soundEnabled) {
+      // Pequeño retraso para asegurar que todo está listo
       const timer = setTimeout(() => {
-        playNotes(currentNotes);
+        try {
+          playNotes(currentNotes);
+          setAudioInitialized(true);
+        } catch {
+          console.warn("No se pudo reproducir automáticamente, se requiere interacción del usuario");
+        }
       }, 500);
 
       return () => clearTimeout(timer);
     }
   }, [currentNotes, isLoaded, playNotes, config.soundEnabled]);
 
+  // Añadir un efecto para intentar inicializar el audio cuando hay interacción del usuario
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (!audioInitialized && currentNotes.length > 0 && isLoaded && config.soundEnabled) {
+        playNotes(currentNotes);
+        setAudioInitialized(true);
+
+        // Eliminar los event listeners después de la primera interacción
+        document.removeEventListener("click", handleUserInteraction);
+        document.removeEventListener("keydown", handleUserInteraction);
+        document.removeEventListener("touchstart", handleUserInteraction);
+      }
+    };
+
+    // Añadir event listeners para detectar interacción del usuario
+    document.addEventListener("click", handleUserInteraction);
+    document.addEventListener("keydown", handleUserInteraction);
+    document.addEventListener("touchstart", handleUserInteraction);
+
+    return () => {
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("keydown", handleUserInteraction);
+      document.removeEventListener("touchstart", handleUserInteraction);
+    };
+  }, [audioInitialized, currentNotes, isLoaded, config.soundEnabled, playNotes]);
+
   const handleNoteClick = (selectedNote: Note) => {
     if (userAnswers.length >= notesToShow || feedback !== "") return;
 
     // Reproducir el sonido de la nota seleccionada
     if (isLoaded && config.soundEnabled) {
+      // Marcar el audio como inicializado ya que el usuario ha interactuado
+      setAudioInitialized(true);
+
       // Determinar qué nota reproducir
       let noteToPlay: Note;
 
@@ -277,6 +317,13 @@ export function App() {
         }
 
         setCurrentNotes(newNotes);
+
+        // Intentar reproducir las nuevas notas si el audio ya está inicializado
+        if (audioInitialized && isLoaded && config.soundEnabled) {
+          setTimeout(() => {
+            playNotes(newNotes);
+          }, 500);
+        }
       }, 50);
 
       setShowClefMenu(false);
@@ -313,6 +360,13 @@ export function App() {
         }
 
         setCurrentNotes(newNotes);
+
+        // Intentar reproducir las nuevas notas si el audio ya está inicializado
+        if (audioInitialized && isLoaded && config.soundEnabled) {
+          setTimeout(() => {
+            playNotes(newNotes);
+          }, 500);
+        }
       }, 50);
 
       setShowClefMenu(false);
