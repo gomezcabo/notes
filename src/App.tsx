@@ -160,11 +160,7 @@ export function App() {
   }, [currentClef, notesToShow]);
 
   // Efecto para generar notas iniciales solo una vez al inicio
-  useEffect(() => {
-    // Generar notas iniciales
-    generateNewNotes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Dependencia vacía para ejecutar solo una vez
+  useEffect(() => generateNewNotes(), [generateNewNotes]);
 
   // Efecto para renderizar el pentagrama cuando cambian las notas
   useEffect(() => {
