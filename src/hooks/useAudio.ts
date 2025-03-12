@@ -40,11 +40,20 @@ const NOTE_TO_MIDI: { [key: string]: string } = {
   "c/6": "C6",
 };
 
+// Tipos de duración de notas
+type NoteDuration = "4n" | "8n" | "16n" | "32n" | "64n"; // negra, corchea, semicorchea, fusa, semifusa
+
 export function useAudio() {
   const pianoRef = useRef<Tone.Sampler | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isIOSDevice, setIsIOSDevice] = useState(false);
 
   useEffect(() => {
+    // Detectar si es un dispositivo iOS
+    const userAgent = navigator.userAgent || navigator.vendor;
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !userAgent.includes("Windows Phone");
+    setIsIOSDevice(isIOS);
+
     // Inicializar el piano con samples realistas
     pianoRef.current = new Tone.Sampler({
       urls: {
@@ -68,28 +77,81 @@ export function useAudio() {
   }, []);
 
   const playNotes = useCallback(
-    async (notes: Note[]) => {
+    async (
+      notes: Note[],
+      noteType?: "scale" | "normal",
+      speed?: "normal" | "fast" | "veryfast",
+      useSustainPedal?: boolean
+    ) => {
       if (!pianoRef.current || !isLoaded) return;
 
       try {
         // Asegurarse de que Tone.js está inicializado
         await Tone.start();
 
-        // Reproducir cada nota en secuencia
-        const now = Tone.now();
-        notes.forEach((note, index) => {
-          const noteName = NOTE_TO_MIDI[note.key];
-          if (noteName) {
-            const noteTime = now + index * 0.5; // 0.5 segundos entre notas
-            pianoRef.current?.triggerAttackRelease(noteName, "4n", noteTime);
+        // En iOS, necesitamos asegurarnos de que el contexto de audio esté en estado "running"
+        if (isIOSDevice && Tone.context.state !== "running") {
+          await Tone.context.resume();
+        }
+
+        // Determinar la duración y espaciado de las notas según el tipo y velocidad
+        let noteDuration: NoteDuration = "4n"; // Por defecto, negras
+        let noteSpacing = 0.5; // Por defecto, 0.5 segundos entre notas
+
+        if (noteType === "scale") {
+          if (speed === "veryfast") {
+            noteDuration = "64n"; // Fusas
+            noteSpacing = 0.04; // Muy rápido
+          } else if (speed === "fast") {
+            noteDuration = "16n"; // Semicorcheas
+            noteSpacing = 0.12; // Rápido
+          } else {
+            noteDuration = "8n"; // Corcheas
+            noteSpacing = 0.25; // Normal para escala
           }
-        });
+        }
+
+        // Si usamos el pedal sostenuto, todas las notas se mantienen hasta el final
+        if (useSustainPedal && noteType === "scale") {
+          const now = Tone.now();
+
+          // Calcular el tiempo total de la escala
+          const totalDuration = (notes.length - 1) * noteSpacing + 1; // +1 segundo extra para la última nota
+
+          // Reproducir cada nota con ataque en secuencia pero liberación al final
+          notes.forEach((note, index) => {
+            const noteName = NOTE_TO_MIDI[note.key];
+            if (noteName) {
+              const attackTime = now + index * noteSpacing;
+              // Solo usamos triggerAttack para mantener la nota sonando
+              pianoRef.current?.triggerAttack(noteName, attackTime);
+
+              // Programar la liberación de todas las notas al final
+              if (index === notes.length - 1) {
+                // Liberar todas las notas después de que termine la escala
+                setTimeout(() => {
+                  pianoRef.current?.releaseAll();
+                }, totalDuration * 1000);
+              }
+            }
+          });
+        } else {
+          // Comportamiento normal: cada nota suena y se apaga según su duración
+          const now = Tone.now();
+          notes.forEach((note, index) => {
+            const noteName = NOTE_TO_MIDI[note.key];
+            if (noteName) {
+              const noteTime = now + index * noteSpacing;
+              pianoRef.current?.triggerAttackRelease(noteName, noteDuration, noteTime);
+            }
+          });
+        }
       } catch (error) {
         console.error("Error al reproducir las notas:", error);
       }
     },
-    [isLoaded]
+    [isLoaded, isIOSDevice]
   );
 
-  return { playNotes, isLoaded };
+  return { playNotes, isLoaded, isIOSDevice };
 }

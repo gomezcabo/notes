@@ -59,7 +59,7 @@ const BASS_NOTES: Note[] = [
 
 export function App() {
   const { config, updateConfig } = useConfig();
-  const { playNotes, isLoaded } = useAudio();
+  const { playNotes, isLoaded, isIOSDevice } = useAudio();
   const [currentClef, setCurrentClef] = useState<ClefType>(config.clef);
   const [notesToShow, setNotesToShow] = useState<number>(config.notesCount);
   const [currentNotes, setCurrentNotes] = useState<Note[]>([]);
@@ -70,6 +70,7 @@ export function App() {
   const staffRef = useRef<HTMLDivElement>(null!);
   const clefMenuRef = useRef<HTMLDivElement>(null!);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const isFirstLoadRef = useRef(true);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -160,7 +161,9 @@ export function App() {
   }, [currentClef, notesToShow]);
 
   // Efecto para generar notas iniciales solo una vez al inicio
-  useEffect(() => generateNewNotes(), [generateNewNotes]);
+  useEffect(() => {
+    generateNewNotes();
+  }, [generateNewNotes]);
 
   // Efecto para renderizar el pentagrama cuando cambian las notas
   useEffect(() => {
@@ -193,6 +196,25 @@ export function App() {
       setAudioInitialized(true);
     }
   }, [audioInitialized, isLoaded]);
+
+  // Efecto para reproducir las notas automáticamente cuando cambian (excepto en la primera carga)
+  useEffect(() => {
+    // Si es la primera carga, marcar como ya no es primera carga y salir sin reproducir
+    if (isFirstLoadRef.current) {
+      isFirstLoadRef.current = false;
+      return;
+    }
+
+    // Solo reproducir si hay notas, el audio está inicializado y el sonido está habilitado
+    if (currentNotes.length > 0 && audioInitialized && isLoaded && config.soundEnabled) {
+      // Pequeño retraso para asegurar que todo está listo
+      const timer = setTimeout(() => {
+        playNotes(currentNotes, "normal", "normal", false);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentNotes, audioInitialized, isLoaded, config.soundEnabled, playNotes]);
 
   const handleNoteClick = (selectedNote: Note) => {
     if (userAnswers.length >= notesToShow || feedback !== "") return;
@@ -241,7 +263,7 @@ export function App() {
       }
 
       // Reproducir la nota
-      playNotes([noteToPlay]);
+      playNotes([noteToPlay], "normal", "normal", false);
     }
 
     const newUserAnswers = [...userAnswers, selectedNote];
@@ -378,7 +400,18 @@ export function App() {
   }, [currentClef, currentNotes, config.notation]);
 
   const handleSoundToggle = () => {
-    updateConfig({ soundEnabled: !config.soundEnabled });
+    const newSoundEnabled = !config.soundEnabled;
+    updateConfig({ soundEnabled: newSoundEnabled });
+
+    // Si el usuario está activando el sonido, inicializar el audio
+    if (newSoundEnabled && isIOSDevice && audioContextRef.current) {
+      audioContextRef.current.resume().catch(console.error);
+
+      // Reproducir una nota para activar el audio en iOS
+      if (currentNotes.length > 0) {
+        playNotes([currentNotes[0]], "normal", "normal", false);
+      }
+    }
   };
 
   return (
